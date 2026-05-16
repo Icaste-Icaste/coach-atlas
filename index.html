@@ -525,6 +525,9 @@
           <div class="user-name" id="user-name">Utilisateur</div>
           <div class="user-goal" id="user-goal">Objectif non défini</div>
         </div>
+        <button onclick="showKeyModal()" title="Changer la clé API" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;transition:color .2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--muted)'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -738,10 +741,9 @@ function showKeyModal() {
 
 function saveKey() {
   const k = document.getElementById('key-input').value.trim();
-  if (!k.startsWith('sk-ant-')) { alert('Clé invalide — doit commencer par sk-ant-'); return; }
+  if (!k.startsWith('sk-')) { alert('Clé invalide — doit commencer par sk-'); return; }
   setAnthropicKey(k);
   document.getElementById('key-modal').style.display = 'none';
-  // Relance le message d'init si le chat est vide
   if (state.messages.length === 0) triggerInitMessage();
 }
 
@@ -1049,22 +1051,35 @@ function buildHistory(extra = []) {
 async function callAnthropicAPI(messages) {
   const key = getAnthropicKey();
   if (!key) { showKeyModal(); throw new Error('Clé API manquante'); }
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-allow-browser': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
-      system: SYSTEM_PROMPT,
-      messages,
-    }),
-  });
-  if (!res.ok) throw new Error(await res.text());
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-allow-browser': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        system: SYSTEM_PROMPT,
+        messages,
+      }),
+    });
+  } catch(e) {
+    throw new Error('Erreur réseau — vérifie ta connexion internet.');
+  }
+  if (res.status === 401) {
+    setAnthropicKey('');
+    showKeyModal();
+    throw new Error('Clé API invalide ou expirée — entre une nouvelle clé.');
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Erreur API (${res.status}) : ${body}`);
+  }
   const data = await res.json();
   return data.content[0].text;
 }

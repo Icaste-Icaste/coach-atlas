@@ -229,6 +229,30 @@
     #send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.4); }
     #send-btn:active { transform: translateY(0); }
     #send-btn svg { width: 20px; height: 20px; }
+    #upload-btn {
+      width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+      background: var(--glass2); border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .2s; color: var(--muted);
+    }
+    #upload-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(6,182,212,.1); }
+    #upload-btn svg { width: 20px; height: 20px; }
+    #file-input { display: none; }
+    .img-preview {
+      position: relative; display: inline-flex; margin: 4px 0 8px;
+    }
+    .img-preview img { max-height: 120px; max-width: 220px; border-radius: 10px; border: 1px solid var(--border); }
+    .img-preview-remove {
+      position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+      background: #ef4444; border: none; border-radius: 50%; color: #fff;
+      font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .msg-img { max-width: 260px; border-radius: 12px; margin-top: 8px; display: block; border: 1px solid var(--border); }
+    .strava-badge {
+      display: inline-flex; align-items: center; gap: 6px; background: rgba(252,82,0,.15);
+      border: 1px solid rgba(252,82,0,.3); border-radius: 8px; padding: 4px 10px;
+      font-size: 11px; font-weight: 600; color: #fc5200; margin-bottom: 8px;
+    }
     #send-btn.loading { pointer-events: none; opacity: .7; }
 
     /* ── Animations ───────────────────────────────────────────── */
@@ -426,7 +450,17 @@
 
     <!-- Input -->
     <div id="input-bar">
-      <textarea id="msg-input" rows="1" placeholder="Écris ton message…" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <input type="file" id="file-input" accept="image/*" onchange="handleImageUpload(event)" />
+      <button id="upload-btn" onclick="document.getElementById('file-input').click()" aria-label="Ajouter un screenshot">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </button>
+      <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+        <div id="img-preview-wrap"></div>
+        <textarea id="msg-input" rows="1" placeholder="Écris ton message ou uploade un screenshot Strava / Garmin…" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      </div>
       <button id="send-btn" onclick="sendMessage()" aria-label="Envoyer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -766,7 +800,7 @@ function clearChat() {
 }
 
 /* ── Chat ─────────────────────────────────────────────────────── */
-function appendMessage(role, content, animate = true) {
+function appendMessage(role, content, animate = true, imageUrl = null) {
   const ws = document.getElementById('welcome-state');
   if (ws) ws.remove();
 
@@ -776,10 +810,18 @@ function appendMessage(role, content, animate = true) {
   if (!animate) wrap.style.animation = 'none';
 
   const initials = role === 'coach' ? 'CA' : (state.name[0] || 'U').toUpperCase();
+  const imgHtml = imageUrl
+    ? `<img src="${imageUrl}" class="msg-img" alt="screenshot entraînement" />`
+    : '';
+  const badge = imageUrl && role === 'user'
+    ? `<div class="strava-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Screenshot analysé</div>`
+    : '';
+  const textHtml = content ? `<div class="msg-bubble">${badge}${imgHtml}${escHtml(content).replace(/\n/g, '<br>')}</div>` : `<div class="msg-bubble">${badge}${imgHtml}</div>`;
+
   wrap.innerHTML = `
     <div class="msg-avatar">${initials}</div>
     <div>
-      <div class="msg-bubble">${escHtml(content).replace(/\n/g, '<br>')}</div>
+      ${textHtml}
       <div class="msg-time">${formatTime(new Date())}</div>
     </div>`;
   area.appendChild(wrap);
@@ -805,19 +847,25 @@ function appendTyping() {
 async function sendMessage() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
-  if (!text) return;
+  if (!text && !pendingImage) return;
   input.value = '';
   input.style.height = '';
 
-  appendMessage('user', text);
-  state.messages.push({ role: 'user', content: text });
+  const img = pendingImage;
+  removePendingImage();
+
+  // Affiche le message utilisateur (texte + image si présente)
+  appendMessage('user', text, true, img?.previewUrl);
+  state.messages.push({ role: 'user', content: text || '[screenshot envoyé]' });
 
   const btn = document.getElementById('send-btn');
   btn.classList.add('loading');
   appendTyping();
 
   try {
-    const reply = await callCoach(text);
+    const reply = img
+      ? await analyzeImageWithClaude(img.base64, img.mediaType, text)
+      : await callCoach(text);
     document.getElementById('typing-msg')?.remove();
     appendMessage('coach', reply);
     state.messages.push({ role: 'coach', content: reply });
@@ -896,6 +944,74 @@ async function callCoach(message) {
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
   return data.reply || data.message || JSON.stringify(data);
+}
+
+/* ── Image upload ─────────────────────────────────────────────── */
+let pendingImage = null; // { base64, mediaType, previewUrl }
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+    pendingImage = { base64, mediaType, previewUrl: dataUrl, name: file.name };
+    renderImagePreview(dataUrl);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function renderImagePreview(src) {
+  const wrap = document.getElementById('img-preview-wrap');
+  wrap.innerHTML = `
+    <div class="img-preview">
+      <img src="${src}" alt="screenshot" />
+      <button class="img-preview-remove" onclick="removePendingImage()" aria-label="Supprimer">✕</button>
+    </div>`;
+}
+
+function removePendingImage() {
+  pendingImage = null;
+  document.getElementById('img-preview-wrap').innerHTML = '';
+}
+
+async function analyzeImageWithClaude(base64, mediaType, userText) {
+  const key = getAnthropicKey();
+  if (!key) { showKeyModal(); throw new Error('Clé manquante'); }
+
+  const analysisPrompt = userText ||
+    "Analyse ce screenshot de course/entraînement. Extrais toutes les données visibles : distance (km), dénivelé D+ (m), durée, allure moyenne (min/km), fréquence cardiaque (FC moy/max), calories, type d'activité, date. Présente-les de façon structurée puis donne une analyse coaching adaptée à mon profil trail/ultra.";
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-allow-browser': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2048,
+      system: SYSTEM_PROMPT,
+      messages: [
+        ...buildHistory(),
+        {
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: analysisPrompt },
+          ],
+        },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.content[0].text;
 }
 
 /* ── Supabase persistence ─────────────────────────────────────── */

@@ -629,8 +629,9 @@ function getAnthropicKey() { return localStorage.getItem('coach_atlas_apikey') |
 function setAnthropicKey(k) { localStorage.setItem('coach_atlas_apikey', k); }
 const ANTHROPIC_KEY = null; // sentinel — on utilise getAnthropicKey() partout
 const API_URL = '/api/chat';
-const SB_URL  = 'https://qbusyfjyrdqfuhzccnua.supabase.co';
-const SB_KEY  = 'sb_publishable_b_J5OKoc_vmi3FOt620Jhg_tNjC04Ot';
+const SB_URL      = 'https://qbusyfjyrdqfuhzccnua.supabase.co';
+const SB_KEY      = 'sb_publishable_b_J5OKoc_vmi3FOt620Jhg_tNjC04Ot';
+const PROXY_URL   = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/chat';
 
 const QUOTES = [
   "« L'ultra ne se court pas avec les jambes, il se court avec le cœur. » — Kilian Jornet",
@@ -1053,35 +1054,26 @@ async function callAnthropicAPI(messages) {
   if (!key) { showKeyModal(); throw new Error('Clé API manquante'); }
   let res;
   try {
-    res = await fetch('https://api.anthropic.com/v1/messages', {
+    res = await fetch(PROXY_URL, {
       method: 'POST',
       headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
-        'anthropic-dangerous-allow-browser': 'true',
+        'x-anthropic-key': key,
+        'apikey': SB_KEY,
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
-        system: SYSTEM_PROMPT,
-        messages,
-      }),
+      body: JSON.stringify({ messages, system: SYSTEM_PROMPT }),
     });
   } catch(e) {
     throw new Error('Erreur réseau — vérifie ta connexion internet.');
   }
-  if (res.status === 401) {
+  const data = await res.json();
+  if (res.status === 401 || data?.error?.toLowerCase().includes('api key')) {
     setAnthropicKey('');
     showKeyModal();
-    throw new Error('Clé API invalide ou expirée — entre une nouvelle clé.');
+    throw new Error('Clé API invalide ou expirée.');
   }
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Erreur API (${res.status}) : ${body}`);
-  }
-  const data = await res.json();
-  return data.content[0].text;
+  if (!res.ok || data.error) throw new Error(data.error || `Erreur ${res.status}`);
+  return data.reply;
 }
 
 // Appel sans message utilisateur — pour le message d'init automatique
@@ -1146,39 +1138,20 @@ function removePendingImage() {
 }
 
 async function analyzeImageWithClaude(base64, mediaType, userText) {
-  const key = getAnthropicKey();
-  if (!key) { showKeyModal(); throw new Error('Clé manquante'); }
-
   const analysisPrompt = userText ||
     "Analyse ce screenshot de course/entraînement. Extrais toutes les données visibles : distance (km), dénivelé D+ (m), durée, allure moyenne (min/km), fréquence cardiaque (FC moy/max), calories, type d'activité, date. Présente-les de façon structurée puis donne une analyse coaching adaptée à mon profil trail/ultra.";
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-allow-browser': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
-      system: SYSTEM_PROMPT,
-      messages: [
-        ...buildHistory(),
-        {
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-            { type: 'text', text: analysisPrompt },
-          ],
-        },
+  const messages = [
+    ...buildHistory(),
+    {
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+        { type: 'text', text: analysisPrompt },
       ],
-    }),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const data = await res.json();
-  return data.content[0].text;
+    },
+  ];
+  return callAnthropicAPI(messages);
 }
 
 /* ── Supabase persistence ─────────────────────────────────────── */

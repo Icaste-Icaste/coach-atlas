@@ -1032,8 +1032,8 @@ async function sendMessage() {
     updateStatsDelta();
   } catch (e) {
     document.getElementById('typing-msg')?.remove();
-    appendMessage('coach', 'Désolé, une erreur est survenue. Vérifie ta connexion ou ta clé API.');
-    console.error(e);
+    appendMessage('coach', `Erreur : ${e.message}`);
+    console.error('Coach Atlas error:', e);
   } finally {
     btn.classList.remove('loading');
     input.focus();

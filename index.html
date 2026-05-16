@@ -253,6 +253,84 @@
       border: 1px solid rgba(252,82,0,.3); border-radius: 8px; padding: 4px 10px;
       font-size: 11px; font-weight: 600; color: #fc5200; margin-bottom: 8px;
     }
+
+    /* ── Weekly Recap ─────────────────────────────────────────── */
+    #recap-modal {
+      display: none; position: fixed; inset: 0; z-index: 150;
+      background: rgba(10,15,30,.92); backdrop-filter: blur(16px);
+      align-items: center; justify-content: center; overflow-y: auto; padding: 20px;
+    }
+    #recap-modal.open { display: flex; }
+    .recap-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 24px; width: 100%; max-width: 680px;
+      box-shadow: var(--glow), 0 40px 80px rgba(0,0,0,.6);
+      animation: fadeUp .4s ease both; overflow: hidden;
+    }
+    .recap-header {
+      padding: 28px 32px 20px;
+      background: linear-gradient(135deg, rgba(124,58,237,.15), rgba(6,182,212,.08));
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .recap-title { font-size: 20px; font-weight: 800; }
+    .recap-title span { background: linear-gradient(90deg, var(--violet), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .recap-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; padding: 4px 8px; border-radius: 8px; transition: background .15s; }
+    .recap-close:hover { background: var(--glass2); }
+    .recap-body { padding: 24px 32px; }
+    .recap-week-input { margin-bottom: 24px; }
+    .recap-week-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .recap-fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .recap-field { display: flex; flex-direction: column; gap: 6px; }
+    .recap-field label { font-size: 11px; color: var(--muted); font-weight: 500; }
+    .recap-field input {
+      background: var(--glass); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; color: var(--text); font-family: inherit; font-size: 14px;
+      font-weight: 600; outline: none; transition: border-color .2s; text-align: center;
+    }
+    .recap-field input:focus { border-color: var(--violet); }
+    .btn-add-week {
+      background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      border-radius: 10px; color: var(--violet); font-family: inherit; font-size: 13px;
+      font-weight: 600; padding: 10px 16px; cursor: pointer; transition: all .2s; width: 100%;
+    }
+    .btn-add-week:hover { background: rgba(124,58,237,.25); }
+    .chart-wrap { margin: 20px 0; }
+    .chart-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .chart-legend { display: flex; gap: 16px; margin-left: auto; }
+    .legend-dot { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+    .legend-dot::before { content:''; width: 10px; height: 3px; border-radius: 2px; background: var(--c); display: block; }
+    svg.progress-chart { width: 100%; overflow: visible; }
+    .recap-ai { margin-top: 20px; background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    .recap-ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 700; }
+    .recap-ai-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--violet), var(--cyan)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .recap-ai-text { font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+    .recap-ai-loading { display: flex; gap: 6px; align-items: center; padding: 8px 0; }
+    .recap-footer { padding: 20px 32px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-recap-action {
+      background: linear-gradient(135deg, var(--violet), var(--violet2));
+      border: none; border-radius: 10px; color: #fff; font-family: inherit;
+      font-size: 13px; font-weight: 600; padding: 10px 20px; cursor: pointer; transition: all .2s;
+    }
+    .btn-recap-action:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-recap-secondary {
+      background: var(--glass); border: 1px solid var(--border); border-radius: 10px;
+      color: var(--muted); font-family: inherit; font-size: 13px; padding: 10px 20px; cursor: pointer; transition: all .2s;
+    }
+    .btn-recap-secondary:hover { background: var(--glass2); color: var(--text); }
+    .sunday-toast {
+      position: fixed; bottom: 80px; right: 20px; z-index: 99;
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.95));
+      border-radius: 16px; padding: 16px 20px; max-width: 280px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4); animation: fadeUp .4s ease both;
+      cursor: pointer;
+    }
+    .sunday-toast h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .sunday-toast p { font-size: 12px; opacity: .85; }
+    @media (max-width: 768px) {
+      .recap-fields { grid-template-columns: 1fr 1fr; }
+      .recap-body, .recap-header, .recap-footer { padding-left: 20px; padding-right: 20px; }
+    }
     #send-btn.loading { pointer-events: none; opacity: .7; }
 
     /* ── Animations ───────────────────────────────────────────── */
@@ -347,6 +425,74 @@
   </div>
 </div>
 
+<!-- ── Weekly Recap Modal ──────────────────────────────────────── -->
+<div id="recap-modal">
+  <div class="recap-card">
+    <div class="recap-header">
+      <div>
+        <div class="recap-title">Récap <span id="recap-week-label">Semaine</span></div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;" id="recap-date-range"></div>
+      </div>
+      <button class="recap-close" onclick="closeRecap()">✕</button>
+    </div>
+    <div class="recap-body">
+      <!-- Saisie données semaine -->
+      <div class="recap-week-input">
+        <div class="recap-week-label">Données de la semaine</div>
+        <div class="recap-fields">
+          <div class="recap-field">
+            <label>Distance (km)</label>
+            <input type="number" id="rk-km" placeholder="65" min="0" step="0.1" />
+          </div>
+          <div class="recap-field">
+            <label>D+ (m)</label>
+            <input type="number" id="rk-dplus" placeholder="2500" min="0" step="10" />
+          </div>
+          <div class="recap-field">
+            <label>Sessions</label>
+            <input type="number" id="rk-sessions" placeholder="4" min="0" max="14" />
+          </div>
+          <div class="recap-field">
+            <label>Fatigue /10</label>
+            <input type="number" id="rk-fatigue" placeholder="5" min="1" max="10" />
+          </div>
+        </div>
+        <button class="btn-add-week" onclick="saveWeekAndAnalyze()">
+          Enregistrer + Analyser avec Coach Atlas
+        </button>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-wrap">
+        <div class="chart-title">
+          Progression sur 8 semaines
+          <div class="chart-legend">
+            <div class="legend-dot" style="--c:#7c3aed">km/sem</div>
+            <div class="legend-dot" style="--c:#06b6d4">D+ (×10m)</div>
+            <div class="legend-dot" style="--c:#f59e0b">Fatigue</div>
+          </div>
+        </div>
+        <svg class="progress-chart" id="progress-chart" height="160" viewBox="0 0 600 160"></svg>
+      </div>
+
+      <!-- AI Recap -->
+      <div class="recap-ai">
+        <div class="recap-ai-header">
+          <div class="recap-ai-avatar">CA</div>
+          Analyse Coach Atlas
+        </div>
+        <div class="recap-ai-text" id="recap-ai-text">
+          Saisis tes données et clique sur Analyser pour obtenir ton bilan.
+        </div>
+      </div>
+    </div>
+    <div class="recap-footer">
+      <button class="btn-recap-secondary" onclick="closeRecap()">Fermer</button>
+      <button class="btn-recap-action" onclick="sendRecapToChat()">Envoyer dans le chat</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── App ─────────────────────────────────────────────────────── -->
 <div id="app" style="display:none">
 
@@ -362,6 +508,10 @@
         </div>
         <span>Coach Atlas</span>
       </div>
+      <button class="btn-new" onclick="openRecap()" style="margin-bottom:8px;background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.3);color:var(--cyan)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Récap hebdo
+      </button>
       <button class="btn-new" onclick="newSession()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nouvelle session
@@ -628,6 +778,8 @@ async function initApp() {
 
   // Share link dans le footer
   renderShareLink();
+  // Toast dimanche
+  setTimeout(checkSundayToast, 2000);
 }
 
 async function loadAllSessions() {
@@ -1111,6 +1263,198 @@ function formatDate(d) {
 
 function formatTime(d) {
   return d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ── Weekly Recap ─────────────────────────────────────────────── */
+let weeklyData = [];       // [{weekStart, km, dplus, sessions, fatigue}]
+let recapAiText = '';
+
+function getWeekStart(d = new Date()) {
+  const day = new Date(d);
+  const diff = (day.getDay() + 6) % 7; // lundi = 0
+  day.setDate(day.getDate() - diff);
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+function loadWeeklyData() {
+  try { weeklyData = JSON.parse(localStorage.getItem('coach_atlas_weekly') || '[]'); } catch(e) { weeklyData = []; }
+}
+
+function saveWeeklyData() {
+  localStorage.setItem('coach_atlas_weekly', JSON.stringify(weeklyData));
+}
+
+function openRecap() {
+  loadWeeklyData();
+  const ws = getWeekStart();
+  const we = new Date(ws); we.setDate(ws.getDate() + 6);
+  document.getElementById('recap-week-label').textContent = `S${getWeekNum(ws)}`;
+  document.getElementById('recap-date-range').textContent =
+    `${ws.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})} → ${we.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}`;
+
+  // Pré-remplis si données déjà saisies cette semaine
+  const existing = weeklyData.find(w => w.weekStart === ws.toISOString().slice(0,10));
+  if (existing) {
+    document.getElementById('rk-km').value      = existing.km || '';
+    document.getElementById('rk-dplus').value   = existing.dplus || '';
+    document.getElementById('rk-sessions').value= existing.sessions || '';
+    document.getElementById('rk-fatigue').value = existing.fatigue || '';
+  } else {
+    ['rk-km','rk-dplus','rk-sessions','rk-fatigue'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  drawChart();
+  document.getElementById('recap-ai-text').textContent = 'Saisis tes données et clique sur Analyser pour obtenir ton bilan.';
+  recapAiText = '';
+  document.getElementById('recap-modal').classList.add('open');
+  if (window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
+}
+
+function closeRecap() {
+  document.getElementById('recap-modal').classList.remove('open');
+}
+
+async function saveWeekAndAnalyze() {
+  const km       = parseFloat(document.getElementById('rk-km').value) || 0;
+  const dplus    = parseFloat(document.getElementById('rk-dplus').value) || 0;
+  const sessions = parseInt(document.getElementById('rk-sessions').value) || 0;
+  const fatigue  = parseInt(document.getElementById('rk-fatigue').value) || 5;
+
+  if (!km && !dplus && !sessions) { alert('Saisis au moins une donnée.'); return; }
+
+  const weekStart = getWeekStart().toISOString().slice(0,10);
+  const idx = weeklyData.findIndex(w => w.weekStart === weekStart);
+  const entry = { weekStart, km, dplus, sessions, fatigue };
+  if (idx >= 0) weeklyData[idx] = entry; else weeklyData.unshift(entry);
+  weeklyData = weeklyData.slice(0, 20); // garde 20 semaines max
+  saveWeeklyData();
+  drawChart();
+
+  // Analyse IA
+  const aiEl = document.getElementById('recap-ai-text');
+  aiEl.innerHTML = '<div class="recap-ai-loading"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+  const prev = weeklyData[1];
+  const diffKm = prev ? (km - prev.km).toFixed(1) : null;
+  const diffD  = prev ? (dplus - prev.dplus)       : null;
+
+  const prompt = `Génère un récap coach hebdomadaire structuré pour cette semaine :
+- Distance : ${km} km ${diffKm ? `(${diffKm > 0 ? '+' : ''}${diffKm} vs semaine précédente)` : ''}
+- Dénivelé : ${dplus} m D+ ${diffD ? `(${diffD > 0 ? '+' : ''}${diffD} m vs semaine précédente)` : ''}
+- Sessions : ${sessions}
+- Fatigue ressentie : ${fatigue}/10
+- Contexte : J-${getDaysToRace()} avant l'UTMB Andorre, volume habituel 65 km/sem, 2000-3000m D+/sem
+
+Utilise le format [ANALYSE] / [POINTS CLÉS] / [PROCHAINE ÉTAPE]. Sois précis, chiffré, direct. Maximum 250 mots.`;
+
+  try {
+    const reply = await callCoach(prompt);
+    aiEl.textContent = reply;
+    recapAiText = reply;
+  } catch(e) {
+    aiEl.textContent = 'Erreur lors de l\'analyse. Vérifie ta clé API.';
+  }
+}
+
+function sendRecapToChat() {
+  if (!recapAiText) { closeRecap(); return; }
+  const entry = weeklyData[0];
+  const summary = `📊 Récap S${getWeekNum(getWeekStart())} — ${entry?.km || '?'} km | ${entry?.dplus || '?'} m D+ | ${entry?.sessions || '?'} sessions | Fatigue ${entry?.fatigue || '?'}/10\n\n${recapAiText}`;
+  appendMessage('coach', summary);
+  state.messages.push({ role: 'coach', content: summary });
+  saveCurrentSession();
+  closeRecap();
+}
+
+function drawChart() {
+  const svg = document.getElementById('progress-chart');
+  if (!svg || weeklyData.length < 1) return;
+
+  const W = 600, H = 160, PAD = { t:16, r:16, b:36, l:40 };
+  const data = [...weeklyData].reverse().slice(-8); // 8 dernières semaines, ordre chrono
+  const n = data.length;
+  if (n === 0) return;
+
+  const maxKm   = Math.max(...data.map(d => d.km || 0), 10);
+  const maxD    = Math.max(...data.map(d => (d.dplus || 0) / 10), 10);
+  const maxFat  = 10;
+  const gMax    = Math.max(maxKm, maxD) * 1.15;
+
+  const cx = i => PAD.l + (i / (n - 1 || 1)) * (W - PAD.l - PAD.r);
+  const cy = (v, max) => PAD.t + (1 - v / (max || 1)) * (H - PAD.t - PAD.b);
+
+  const pathD = (vals, max) => vals.map((v,i) => `${i===0?'M':'L'}${cx(i).toFixed(1)},${cy(v,max).toFixed(1)}`).join(' ');
+  const areaD = (vals, max) => {
+    const pts = vals.map((v,i) => `${cx(i).toFixed(1)},${cy(v,max).toFixed(1)}`);
+    return `M${cx(0)},${cy(0,1)} L${pts.join(' L')} L${cx(n-1)},${cy(0,1)} Z`;
+  };
+
+  const kmVals  = data.map(d => d.km || 0);
+  const dpVals  = data.map(d => (d.dplus || 0) / 10);
+  const fatVals = data.map(d => d.fatigue || 0);
+  const labels  = data.map(d => `S${getWeekNum(new Date(d.weekStart))}`);
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gKm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7c3aed" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="gDp" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#06b6d4" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <!-- Grid -->
+    ${[0,.25,.5,.75,1].map(f => {
+      const y = cy(f * gMax, gMax);
+      return `<line x1="${PAD.l}" y1="${y.toFixed(1)}" x2="${W-PAD.r}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <text x="${PAD.l-6}" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#475569">${(f*gMax).toFixed(0)}</text>`;
+    }).join('')}
+    <!-- Areas -->
+    <path d="${areaD(kmVals, gMax)}" fill="url(#gKm)"/>
+    <path d="${areaD(dpVals, gMax)}" fill="url(#gDp)"/>
+    <!-- Lines -->
+    <path d="${pathD(kmVals, gMax)}"  fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${pathD(dpVals, gMax)}"  fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5,3"/>
+    <path d="${pathD(fatVals, maxFat)}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="3,3"/>
+    <!-- Dots km -->
+    ${kmVals.map((v,i) => `<circle cx="${cx(i).toFixed(1)}" cy="${cy(v,gMax).toFixed(1)}" r="4" fill="#7c3aed" stroke="var(--bg2)" stroke-width="2"/>
+      <text x="${cx(i).toFixed(1)}" y="${(cy(v,gMax)-8).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#a78bfa">${v}</text>`).join('')}
+    <!-- Labels X -->
+    ${labels.map((l,i) => `<text x="${cx(i).toFixed(1)}" y="${H-PAD.b+16}" text-anchor="middle" font-size="10" fill="#64748b">${l}</text>`).join('')}
+  `;
+}
+
+function getWeekNum(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+function getDaysToRace() {
+  // Calcul basé sur la date du jour — à ajuster quand la date exacte est connue
+  const raceDate = new Date();
+  raceDate.setDate(raceDate.getDate() + 30); // placeholder J-30
+  return Math.max(0, Math.round((raceDate - new Date()) / 86400000));
+}
+
+function checkSundayToast() {
+  const today = new Date();
+  if (today.getDay() !== 0) return; // 0 = dimanche
+  const lastToast = localStorage.getItem('coach_atlas_last_toast');
+  const thisWeek = getWeekStart().toISOString().slice(0,10);
+  if (lastToast === thisWeek) return;
+  localStorage.setItem('coach_atlas_last_toast', thisWeek);
+  const toast = document.createElement('div');
+  toast.className = 'sunday-toast';
+  toast.innerHTML = `<h4>C'est dimanche !</h4><p>Fais ton récap hebdo pour tracker ta progression.</p>`;
+  toast.onclick = () => { toast.remove(); openRecap(); };
+  document.body.appendChild(toast);
+  setTimeout(() => toast.style.opacity = '0', 8000);
+  setTimeout(() => toast.remove(), 8500);
 }
 
 function updateStatsDelta() {

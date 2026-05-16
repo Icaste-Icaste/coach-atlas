@@ -62,7 +62,7 @@
     .ob-title span { background: linear-gradient(90deg, var(--violet), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .ob-sub { color: var(--muted); font-size: 15px; margin-bottom: 32px; line-height: 1.6; }
     .ob-label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
-    .ob-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 32px; }
+    .ob-goals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 32px; }
     .ob-goal {
       background: var(--glass); border: 1px solid var(--border);
       border-radius: 12px; padding: 16px 14px;
@@ -272,6 +272,16 @@
 </head>
 <body>
 
+<!-- ── Key Modal ───────────────────────────────────────────────── -->
+<div id="key-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(10,15,30,.85);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;">
+  <div style="background:#111827;border:1px solid rgba(124,58,237,.3);border-radius:20px;padding:36px 32px;max-width:420px;width:90%;box-shadow:0 0 40px rgba(124,58,237,.25);">
+    <div style="font-size:22px;font-weight:800;margin-bottom:8px;">Clé Anthropic</div>
+    <p style="color:#94a3b8;font-size:14px;margin-bottom:24px;line-height:1.6;">Entre ta clé API — elle est stockée uniquement dans ton navigateur, jamais envoyée ailleurs.</p>
+    <input id="key-input" type="password" placeholder="sk-ant-api03-..." style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:13px 16px;color:#f1f5f9;font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;" />
+    <button onclick="saveKey()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:15px;font-weight:600;padding:14px;cursor:pointer;">Enregistrer et démarrer</button>
+  </div>
+</div>
+
 <!-- ── Onboarding ──────────────────────────────────────────────── -->
 <div id="onboarding">
   <div class="ob-card">
@@ -283,39 +293,33 @@
     </div>
     <h1 class="ob-title">Bienvenue sur<br><span>Coach Atlas</span></h1>
     <p class="ob-sub">Ton assistant de coaching IA personnel. Dis-moi ton objectif pour personnaliser ton expérience.</p>
-    <p class="ob-label">Ton objectif principal</p>
+    <p class="ob-label">Sur quel axe veux-tu démarrer ?</p>
     <div class="ob-goals">
-      <div class="ob-goal" data-goal="career" onclick="selectGoal(this)">
+      <div class="ob-goal selected" data-goal="andorre" onclick="selectGoal(this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          <polygon points="3 17 9 3 15 14 19 9 21 17"/><line x1="3" y1="17" x2="21" y2="17"/>
         </svg>
-        <span class="g-name">Carrière</span>
-        <span class="g-desc">Évolution pro & leadership</span>
+        <span class="g-name">UTMB Andorre</span>
+        <span class="g-desc">Préparation finale — J-30</span>
       </div>
-      <div class="ob-goal" data-goal="fitness" onclick="selectGoal(this)">
+      <div class="ob-goal" data-goal="lyonnice" onclick="selectGoal(this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
-        <span class="g-name">Fitness</span>
-        <span class="g-desc">Santé & performance physique</span>
+        <span class="g-name">Lyon → Nice</span>
+        <span class="g-desc">Expédition ~500 km à pied</span>
       </div>
-      <div class="ob-goal" data-goal="mindset" onclick="selectGoal(this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+      <div class="ob-goal" data-goal="triathlon" onclick="selectGoal(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="3"/><path d="M6.5 8a9 9 0 0 0-1 4.5C5.5 17 8.5 20 12 20s6.5-3 6.5-7.5a9 9 0 0 0-1-4.5"/>
+          <line x1="12" y1="8" x2="12" y2="20"/>
         </svg>
-        <span class="g-name">Mindset</span>
-        <span class="g-desc">Mental & développement perso</span>
-      </div>
-      <div class="ob-goal" data-goal="business" onclick="selectGoal(this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
-        <span class="g-name">Business</span>
-        <span class="g-desc">Entrepreneuriat & stratégie</span>
+        <span class="g-name">Triathlon</span>
+        <span class="g-desc">Intégration dans le plan global</span>
       </div>
     </div>
     <input class="ob-name" id="ob-name" type="text" placeholder="Ton prénom (optionnel)" />
-    <button class="btn-primary" onclick="startSession()">Commencer ma session →</button>
+    <button class="btn-primary" onclick="startSession()">Lancer Coach Atlas →</button>
   </div>
 </div>
 
@@ -434,40 +438,103 @@
 
 <script>
 /* ── Config ───────────────────────────────────────────────────── */
-// Pour appeler Claude directement depuis le front (démo sans backend) :
-// Remplace '' par ta clé sk-ant-... et décommente la ligne ANTHROPIC_KEY
-// En production, utilise une variable d'environnement côté serveur.
-const ANTHROPIC_KEY = '';   // ← sk-ant-xxxxxxxxxxxx (ou laisser vide pour mode démo)
-const API_URL = '/api/chat';  // endpoint backend (Vercel function, etc.)
+// Clé stockée uniquement dans localStorage (jamais dans le code)
+function getAnthropicKey() { return localStorage.getItem('coach_atlas_apikey') || ''; }
+function setAnthropicKey(k) { localStorage.setItem('coach_atlas_apikey', k); }
+const ANTHROPIC_KEY = null; // sentinel — on utilise getAnthropicKey() partout
+const API_URL = '/api/chat';
+const SB_URL  = 'https://qbusyfjyrdqfuhzccnua.supabase.co';
+const SB_KEY  = 'sb_publishable_b_J5OKoc_vmi3FOt620Jhg_tNjC04Ot';
 
 const QUOTES = [
-  "« Le succès, c'est aller d'échec en échec sans perdre son enthousiasme. » — Churchill",
-  "« La discipline est le pont entre les objectifs et les accomplissements. » — Jim Rohn",
-  "« Ce que tu penses, tu le deviens. » — Buddha",
-  "« Le moment de se lancer, c'est maintenant. » — Epictète",
-  "« Chaque expert a été un débutant. » — Helen Hayes",
-  "« L'action est la clé fondamentale de tout succès. » — Picasso",
-  "« Ta vie ne s'améliore pas par hasard, elle s'améliore par le changement. » — Jim Rohn",
+  "« L'ultra ne se court pas avec les jambes, il se court avec le cœur. » — Kilian Jornet",
+  "« La douleur est temporaire. La fierté d'avoir terminé est permanente. »",
+  "« 65 km/semaine aujourd'hui, 500 km en continu demain. Chaque foulée compte. »",
+  "« Le taper n'est pas du repos — c'est de la préparation active à la performance. »",
+  "« Nutrition = carburant. Sans stratégie alimentaire, pas de finish line. »",
+  "« Lyon → Nice : 500 km, pas à pas. La distance se mange à la tranche. »",
+  "« Un ultra se prépare à l'entraînement, mais se gagne dans la tête. »",
 ];
 
-const SUGGESTIONS = {
-  career:  ['Comment progresser dans ma carrière ?', 'Je prépare un entretien', 'Comment développer mon leadership ?', 'Je veux changer de métier'],
-  fitness: ['Programme d\'entraînement pour débutant', 'Comment rester motivé ?', 'Nutrition et récupération', 'Fixer mes objectifs fitness'],
-  mindset: ['Gérer le stress quotidien', 'Développer ma confiance', 'Techniques de méditation', 'Arrêter la procrastination'],
-  business:['Valider mon idée business', 'Trouver mes premiers clients', 'Structurer mon offre', 'Gérer ma croissance'],
-};
+const SUGGESTIONS_ANDORRE = [
+  'Plan des 4 semaines avant l\'UTMB Andorre',
+  'Stratégie nutrition course le jour J',
+  'Check-list équipement obligatoire',
+  'Gestion du sommeil et récupération pré-course',
+];
+const SUGGESTIONS_LYONNICE = [
+  'Liste équipement Lyon → Nice jour par jour',
+  'Plan d\'entraînement spécifique multi-jours',
+  'Protocole récupération nocturne en expédition',
+  'Estimation du temps de préparation physique',
+];
+const SUGGESTIONS_TRI = [
+  'Intégrer le triathlon sans surcharger',
+  'Répartition natation/vélo/course sur la semaine',
+  'Transition trail → triathlon : gestion de la charge',
+];
 
-const SYSTEM_PROMPTS = {
-  career:  'Tu es Coach Atlas, un expert en développement de carrière et leadership. Tu parles français avec bienveillance, précision et pragmatisme. Tu poses des questions ciblées pour comprendre la situation avant de conseiller.',
-  fitness: 'Tu es Coach Atlas, un coach fitness et bien-être. Tu parles français avec énergie et encouragement. Tu proposes des conseils pratiques adaptés au niveau de l\'utilisateur.',
-  mindset: 'Tu es Coach Atlas, un coach en développement personnel et mindset. Tu parles français avec douceur et profondeur. Tu utilises des techniques de PNL et de psychologie positive.',
-  business:'Tu es Coach Atlas, un expert en entrepreneuriat et stratégie business. Tu parles français avec pragmatisme et vision. Tu poses les bonnes questions pour débloquer la réflexion.',
-};
+const SYSTEM_PROMPT = `Tu es Coach Atlas — un expert en sciences du sport spécialisé dans les disciplines suivantes, que tu maîtrises à niveau professionnel :
+- Ultratrail et trail mountain (courses de 50 km à 500+ km)
+- Triathlon (formats sprint à Ironman)
+- Gestion des efforts extrêmes multi-jours
+- Planification nutritionnelle pour efforts d'endurance longue durée
+- Équipement technique pour expeditions pédestres extrêmes
+
+Tu ne fais jamais de généralités floues. Chaque réponse que tu fournis est précise, chiffrée, justifiée et immédiatement applicable.
+
+# PROFIL ATHLÈTE — MÉMORISÉ
+
+Identité sportive : Pratique trail/ultratrail + triathlon. Ancienneté réelle : 1 an de pratique sérieuse, 4 à 5 séances par semaine.
+
+Volume d'entraînement actuel :
+- Distance hebdomadaire : 65 km/semaine
+- Dénivelé positif hebdomadaire : 2 000 à 3 000 m D+
+- Référence de performance : un ultra récent de 67 km avec 2 700 m D+
+
+Blessures / Contraintes alimentaires / Budget : Aucune contrainte signalée à ce jour.
+
+Compétitions cibles :
+1. Ultra UTMB Andorre — dans 1 mois (distance et profil exacts à préciser)
+2. Lyon → Nice à pied — projet d'expédition pédestre (~500 km, date non fixée, préparation longue durée nécessaire)
+
+Discipline complémentaire : Triathlon (intégration dans la planification globale à gérer sans créer de surcharge)
+
+# MISSION PRINCIPALE — 3 AXES
+
+Axe 1 — UTMB Andorre dans 1 mois : optimiser les 4 semaines restantes sans compromettre l'état physique à la ligne de départ. Priorité : fraîcheur, récupération, logistique course, pas augmentation de charge.
+
+Axe 2 — Lyon → Nice (~400-500 km) : guider sur l'équipement précis, le plan d'entraînement spécifique multi-jours, les protocoles de récupération nocturne, nutrition en mouvement, gestion des pieds et articulations.
+
+Axe 3 — Triathlon : intégrer sans créer de conflit de charge avec les deux autres axes.
+
+# PROTOCOLE DE RÉPONSE OBLIGATOIRE
+
+Structure chaque réponse avec ces balises :
+
+[CONTEXTE] Rappel en 1-2 phrases des données athlète utilisées
+[ANALYSE] Raisonnement étape par étape AVANT la recommandation
+[RECOMMANDATION] Conseil précis, chiffré, applicable immédiatement
+[POINTS CLÉS] 3 à 5 points numérotés essentiels
+[PROCHAINE ÉTAPE] Une action concrète dans les 24-48 heures
+[VALIDATION] Vérification : tous les aspects traités, pas de contradiction avec le profil
+
+Règles absolues :
+- N'utilise JAMAIS "tu peux essayer", "il serait intéressant de", "peut-être que"
+- Si tu utilises un terme technique (taper, tempo lactique, drop de chaussure), définis-le la première fois
+- Pour chaque recommandation, indique ce qu'il ne faut surtout PAS faire en parallèle
+- Réponds toujours en minimum 150 mots sur une question technique
+- Mémorise toutes les informations nouvelles données au fil de la conversation
+- Si une info nouvelle contredit une ancienne, signale-le explicitement avant d'adapter
+
+# INITIALISATION
+
+Si c'est le tout premier message de la conversation (aucun historique), présente-toi brièvement comme Coach Atlas, confirme que tu as enregistré le profil athlète complet, et pose UNE SEULE question : quel est le format exact de l'UTMB Andorre (distance en km et dénivelé total) ? Ne donne aucun conseil avant d'avoir cette information.`;
 
 /* ── State ────────────────────────────────────────────────────── */
 let state = {
   name: '',
-  goal: '',
+  goal: 'andorre',
   sessions: [],
   currentSession: null,
   messages: [],
@@ -481,48 +548,126 @@ function selectGoal(el) {
   state.goal = el.dataset.goal;
 }
 
+function showKeyModal() {
+  document.getElementById('key-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('key-input').focus(), 100);
+}
+
+function saveKey() {
+  const k = document.getElementById('key-input').value.trim();
+  if (!k.startsWith('sk-ant-')) { alert('Clé invalide — doit commencer par sk-ant-'); return; }
+  setAnthropicKey(k);
+  document.getElementById('key-modal').style.display = 'none';
+  // Relance le message d'init si le chat est vide
+  if (state.messages.length === 0) triggerInitMessage();
+}
+
 function startSession() {
-  if (!state.goal) { alert('Choisis un objectif d\'abord !'); return; }
-  state.name = document.getElementById('ob-name').value.trim() || 'Coach';
+  state.name = document.getElementById('ob-name').value.trim() || 'Athlète';
   document.getElementById('onboarding').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  if (!getAnthropicKey()) { showKeyModal(); }
   initApp();
 }
 
 /* ── Init ─────────────────────────────────────────────────────── */
-function initApp() {
+async function initApp() {
   // Quote
   const q = QUOTES[new Date().getDate() % QUOTES.length];
-  document.getElementById('daily-quote').innerHTML = `<span>Citation du jour</span> — ${q.replace(/«|»/g, m => m === '«' ? '"' : '"')}`;
+  document.getElementById('daily-quote').innerHTML = `<span>Coach Atlas</span> — ${escHtml(q)}`;
 
   // User badge
-  const init = state.name[0].toUpperCase();
-  document.getElementById('user-avatar').textContent = init;
+  document.getElementById('user-avatar').textContent = state.name[0].toUpperCase();
   document.getElementById('user-name').textContent = state.name;
-  const goalLabels = { career:'Carrière', fitness:'Fitness', mindset:'Mindset', business:'Business' };
-  document.getElementById('user-goal').textContent = goalLabels[state.goal];
+  const goalLabels = { andorre:'UTMB Andorre — J-30', lyonnice:'Lyon → Nice 500 km', triathlon:'Triathlon' };
+  document.getElementById('user-goal').textContent = goalLabels[state.goal] || 'Trail & Ultra';
 
-  // Welcome
-  document.getElementById('welcome-title').textContent = `Bonjour ${state.name} !`;
-  document.getElementById('welcome-sub').textContent = 'Pose-moi ta première question ou choisis un sujet ci-dessous.';
-
-  // Chips
-  const chips = document.getElementById('chips');
-  chips.innerHTML = '';
-  (SUGGESTIONS[state.goal] || []).forEach(s => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = s;
-    b.onclick = () => { document.getElementById('msg-input').value = s; sendMessage(); };
-    chips.appendChild(b);
-  });
-
-  // Stats (demo values)
-  const statsDemo = { focus: 72, energy: 58, clarity: 85 };
+  // Stats (trail-specific labels)
+  document.querySelector('#statsbar .stat-card:nth-child(1) .stat-label').textContent = 'Charge';
+  document.querySelector('#statsbar .stat-card:nth-child(2) .stat-label').textContent = 'Récup';
+  document.querySelector('#statsbar .stat-card:nth-child(3) .stat-label').textContent = 'Forme';
+  const statsDemo = { focus: 68, energy: 74, clarity: 81 };
   setTimeout(() => animateStats(statsDemo), 400);
 
-  // Session
+  // Charge sessions depuis Supabase + localStorage
+  await loadAllSessions();
+
+  // Share link dans le footer
+  renderShareLink();
+}
+
+async function loadAllSessions() {
+  // 1. Essaie Supabase
+  let remote = await sbLoadSessions();
+  if (remote.length > 0) {
+    state.sessions = remote;
+    state.currentSession = remote[0];
+    state.messages = [...remote[0].messages];
+    if (remote[0].goal) state.goal = remote[0].goal;
+    renderSessions();
+    clearChat();
+    if (state.messages.length > 0) {
+      document.getElementById('welcome-state')?.remove();
+      state.messages.forEach(m => appendMessage(m.role, m.content, false));
+    } else {
+      setTimeout(() => triggerInitMessage(), 300);
+    }
+    return;
+  }
+  // 2. Fallback localStorage
+  try {
+    const saved = JSON.parse(localStorage.getItem('coach_atlas_sessions') || '[]');
+    if (saved.length > 0) {
+      state.sessions = saved.map(s => ({ ...s, date: new Date(s.date) }));
+      state.currentSession = state.sessions[0];
+      state.messages = [...state.sessions[0].messages];
+      renderSessions();
+      clearChat();
+      if (state.messages.length > 0) {
+        document.getElementById('welcome-state')?.remove();
+        state.messages.forEach(m => appendMessage(m.role, m.content, false));
+        return;
+      }
+    }
+  } catch(e) {}
+  // 3. Aucune session existante → nouvelle + message init
   newSession();
+  setTimeout(() => triggerInitMessage(), 300);
+}
+
+function renderShareLink() {
+  const footer = document.querySelector('.sb-footer');
+  if (!footer || document.getElementById('share-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'share-btn';
+  btn.title = 'Copier le lien pour accéder depuis un autre appareil';
+  btn.style.cssText = 'margin-top:12px;width:100%;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.3);border-radius:10px;color:#06b6d4;font-family:inherit;font-size:12px;font-weight:600;padding:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;';
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Copier le lien de sync`;
+  btn.onclick = () => {
+    navigator.clipboard.writeText(getShareLink()).then(() => {
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Lien copié !`;
+      setTimeout(() => { btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Copier le lien de sync`; }, 2000);
+    });
+  };
+  footer.appendChild(btn);
+}
+
+async function triggerInitMessage() {
+  appendTyping();
+  const btn = document.getElementById('send-btn');
+  btn.classList.add('loading');
+  try {
+    const reply = await callCoachRaw([]);
+    document.getElementById('typing-msg')?.remove();
+    appendMessage('coach', reply);
+    state.messages.push({ role: 'coach', content: reply });
+    if (state.currentSession) state.currentSession.messages = [...state.messages];
+  } catch(e) {
+    document.getElementById('typing-msg')?.remove();
+    appendMessage('coach', 'Bonjour ! Je suis Coach Atlas. Quel est le format exact de ton UTMB Andorre (distance en km et dénivelé total) ?');
+  } finally {
+    btn.classList.remove('loading');
+  }
 }
 
 /* ── Stats rings ──────────────────────────────────────────────── */
@@ -563,7 +708,7 @@ function renderSessions() {
     div.innerHTML = `
       <div class="session-dot"></div>
       <div class="session-info">
-        <div class="session-name">${s.name}</div>
+        <div class="session-name">${escHtml(s.name)}</div>
         <div class="session-date">${formatDate(s.date)}</div>
       </div>`;
     div.onclick = () => loadSession(s);
@@ -574,11 +719,29 @@ function renderSessions() {
 function loadSession(session) {
   state.currentSession = session;
   state.messages = [...session.messages];
+  if (session.goal) state.goal = session.goal;
   clearChat();
+  const ws = document.getElementById('welcome-state');
   if (state.messages.length === 0) return;
-  document.getElementById('welcome-state').style.display = 'none';
+  if (ws) ws.remove();
   state.messages.forEach(m => appendMessage(m.role, m.content, false));
   renderSessions();
+  if (window.innerWidth <= 768) toggleSidebar();
+}
+
+async function saveCurrentSession() {
+  if (!state.currentSession) return;
+  state.currentSession.messages = [...state.messages];
+  // localStorage backup
+  try { localStorage.setItem('coach_atlas_sessions', JSON.stringify(state.sessions.slice(0, 20))); } catch(e) {}
+  // Supabase sync
+  await sbSaveSession(state.currentSession);
+}
+
+function getSuggestions() {
+  if (state.goal === 'lyonnice') return SUGGESTIONS_LYONNICE;
+  if (state.goal === 'triathlon') return SUGGESTIONS_TRI;
+  return SUGGESTIONS_ANDORRE;
 }
 
 function clearChat() {
@@ -588,12 +751,12 @@ function clearChat() {
   ws.className = 'welcome-state';
   ws.id = 'welcome-state';
   ws.innerHTML = `
-    <h2 id="welcome-title">Bonjour ${state.name} !</h2>
-    <p id="welcome-sub">Nouvelle session — Pose-moi ta première question.</p>
+    <h2 id="welcome-title">Bonjour ${escHtml(state.name)} !</h2>
+    <p id="welcome-sub">Nouvelle session — initialisation en cours…</p>
     <div class="suggestion-chips" id="chips"></div>`;
   area.appendChild(ws);
   const chips = ws.querySelector('#chips');
-  (SUGGESTIONS[state.goal] || []).forEach(s => {
+  getSuggestions().forEach(s => {
     const b = document.createElement('button');
     b.className = 'chip';
     b.textContent = s;
@@ -658,15 +821,12 @@ async function sendMessage() {
     document.getElementById('typing-msg')?.remove();
     appendMessage('coach', reply);
     state.messages.push({ role: 'coach', content: reply });
-    if (state.currentSession) {
-      state.currentSession.messages = [...state.messages];
-      // Update session name from first user message
-      if (state.currentSession.messages.filter(m => m.role === 'user').length === 1) {
-        state.currentSession.name = text.slice(0, 35) + (text.length > 35 ? '…' : '');
-        renderSessions();
-      }
+    // Nomme la session d'après le premier message utilisateur
+    if (state.currentSession && state.messages.filter(m => m.role === 'user').length === 1) {
+      state.currentSession.name = text.slice(0, 38) + (text.length > 38 ? '…' : '');
+      renderSessions();
     }
-    // Simulate stat update on each exchange
+    await saveCurrentSession();
     updateStatsDelta();
   } catch (e) {
     document.getElementById('typing-msg')?.remove();
@@ -679,42 +839,135 @@ async function sendMessage() {
 }
 
 /* ── API call ─────────────────────────────────────────────────── */
-async function callCoach(message) {
-  // ── Option A : appel direct à Claude (front-end, clé visible) ──
-  if (ANTHROPIC_KEY) {
-    const history = state.messages.slice(-10).map(m => ({
-      role: m.role === 'coach' ? 'assistant' : 'user',
-      content: m.content,
-    }));
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-allow-browser': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        system: SYSTEM_PROMPTS[state.goal] || SYSTEM_PROMPTS.mindset,
-        messages: history,
-      }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    return data.content[0].text;
-  }
+function buildHistory(extra = []) {
+  return [...state.messages.slice(-14), ...extra].map(m => ({
+    role: m.role === 'coach' ? 'assistant' : 'user',
+    content: m.content,
+  }));
+}
 
-  // ── Option B : appel via ton backend Vercel ─────────────────────
+async function callAnthropicAPI(messages) {
+  const key = getAnthropicKey();
+  if (!key) { showKeyModal(); throw new Error('Clé API manquante'); }
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-allow-browser': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2048,
+      system: SYSTEM_PROMPT,
+      messages,
+    }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// Appel sans message utilisateur — pour le message d'init automatique
+async function callCoachRaw(extraMessages) {
+  if (getAnthropicKey()) {
+    return callAnthropicAPI(extraMessages.length ? extraMessages : [{ role: 'user', content: 'Initialise la conversation.' }]);
+  }
   const res = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, goal: state.goal, history: state.messages.slice(-10) }),
+    body: JSON.stringify({ init: true, goal: state.goal }),
   });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
   return data.reply || data.message || JSON.stringify(data);
+}
+
+async function callCoach(message) {
+  if (getAnthropicKey()) {
+    return callAnthropicAPI(buildHistory([{ role: 'user', content: message }]));
+  }
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, goal: state.goal, history: state.messages.slice(-14) }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.reply || data.message || JSON.stringify(data);
+}
+
+/* ── Supabase persistence ─────────────────────────────────────── */
+function sbHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SB_KEY,
+    'Authorization': `Bearer ${SB_KEY}`,
+    'Prefer': 'return=representation',
+  };
+}
+
+function getUserId() {
+  // ID stable dans localStorage + reflété dans l'URL hash pour partage cross-device
+  let id = localStorage.getItem('coach_atlas_uid');
+  if (!id) {
+    id = 'u_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    localStorage.setItem('coach_atlas_uid', id);
+  }
+  // Si un UID est dans l'URL (#uid=xxx), on l'adopte (accès depuis un autre appareil)
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (hash.get('uid')) {
+    id = hash.get('uid');
+    localStorage.setItem('coach_atlas_uid', id);
+    history.replaceState(null, '', location.pathname);
+  }
+  return id;
+}
+
+async function sbSaveSession(session) {
+  if (!SB_URL || !SB_KEY) return;
+  const uid = getUserId();
+  try {
+    await fetch(`${SB_URL}/rest/v1/coach_sessions`, {
+      method: 'POST',
+      headers: { ...sbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        id: session.id + '_' + uid,
+        user_id: uid,
+        goal: state.goal,
+        name: session.name,
+        messages: session.messages,
+        stats: state.stats,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch(e) { console.warn('Supabase save:', e); }
+}
+
+async function sbLoadSessions() {
+  if (!SB_URL || !SB_KEY) return [];
+  const uid = getUserId();
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/coach_sessions?user_id=eq.${uid}&order=updated_at.desc&limit=20`,
+      { headers: sbHeaders() }
+    );
+    if (!res.ok) return [];
+    const rows = await res.json();
+    return rows.map(r => ({
+      id: r.id,
+      name: r.name || 'Session',
+      date: new Date(r.updated_at),
+      messages: r.messages || [],
+      goal: r.goal,
+    }));
+  } catch(e) { console.warn('Supabase load:', e); return []; }
+}
+
+function getShareLink() {
+  const uid = getUserId();
+  return `${location.origin}${location.pathname}#uid=${uid}`;
 }
 
 /* ── Helpers ──────────────────────────────────────────────────── */

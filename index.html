@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach Atlas — Ton IA de coaching personnel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0a0f1e;
+      --bg2:      #111827;
+      --bg3:      #1a2035;
+      --violet:   #7c3aed;
+      --violet2:  #6d28d9;
+      --cyan:     #06b6d4;
+      --cyan2:    #0891b2;
+      --text:     #f1f5f9;
+      --muted:    #94a3b8;
+      --border:   rgba(124,58,237,.25);
+      --glass:    rgba(255,255,255,.04);
+      --glass2:   rgba(255,255,255,.08);
+      --glow:     0 0 30px rgba(124,58,237,.3);
+      --rad:      16px;
+      --sidebar:  280px;
+    }
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+    /* ── Scrollbar ────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ── Onboarding ───────────────────────────────────────────── */
+    #onboarding {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,.18) 0%, var(--bg) 70%);
+    }
+    .ob-card {
+      background: var(--glass2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      max-width: 480px; width: 90%;
+      backdrop-filter: blur(24px);
+      box-shadow: var(--glow), 0 40px 80px rgba(0,0,0,.5);
+      animation: fadeUp .6s ease both;
+    }
+    .ob-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+    .ob-logo-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ob-logo-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .ob-logo span { font-size: 20px; font-weight: 700; letter-spacing: -.5px; }
+    .ob-title { font-size: 28px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; }
+    .ob-title span { background: linear-gradient(90deg, var(--violet), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .ob-sub { color: var(--muted); font-size: 15px; margin-bottom: 32px; line-height: 1.6; }
+    .ob-label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+    .ob-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 32px; }
+    .ob-goal {
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 14px;
+      cursor: pointer; transition: all .2s;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .ob-goal:hover { background: rgba(124,58,237,.15); border-color: var(--violet); transform: translateY(-2px); }
+    .ob-goal.selected { background: rgba(124,58,237,.2); border-color: var(--violet); box-shadow: 0 0 0 2px rgba(124,58,237,.3); }
+    .ob-goal svg { width: 20px; height: 20px; }
+    .ob-goal .g-name { font-weight: 600; font-size: 14px; }
+    .ob-goal .g-desc { font-size: 12px; color: var(--muted); }
+    .ob-name { width: 100%; background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; color: var(--text); font-family: inherit; font-size: 15px; margin-bottom: 16px; outline: none; transition: border-color .2s; }
+    .ob-name:focus { border-color: var(--violet); }
+    .ob-name::placeholder { color: var(--muted); }
+    .btn-primary {
+      width: 100%; background: linear-gradient(135deg, var(--violet), var(--violet2));
+      border: none; border-radius: 12px; color: #fff; font-family: inherit; font-size: 15px;
+      font-weight: 600; padding: 15px; cursor: pointer; transition: all .2s;
+    }
+    .btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,58,237,.4); }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ── Main Layout ──────────────────────────────────────────── */
+    #app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ──────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar); min-width: var(--sidebar);
+      background: var(--bg2); border-right: 1px solid rgba(255,255,255,.06);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: transform .3s ease;
+    }
+    .sb-header { padding: 20px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .sb-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .sb-logo-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sb-logo-icon svg { width: 18px; height: 18px; fill: #fff; }
+    .sb-logo span { font-size: 16px; font-weight: 700; }
+    .btn-new {
+      width: 100%; background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      border-radius: 10px; color: var(--violet); font-family: inherit; font-size: 13px;
+      font-weight: 600; padding: 10px; cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-new:hover { background: rgba(124,58,237,.25); }
+    .sb-section { padding: 16px 20px 8px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .sb-sessions { flex: 1; overflow-y: auto; padding: 0 12px; }
+    .session-item {
+      padding: 10px 12px; border-radius: 10px; cursor: pointer;
+      margin-bottom: 2px; transition: background .15s;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .session-item:hover { background: var(--glass2); }
+    .session-item.active { background: rgba(124,58,237,.15); }
+    .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); flex-shrink: 0; }
+    .session-info { min-width: 0; }
+    .session-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .session-date { font-size: 11px; color: var(--muted); }
+    .sb-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.06); }
+    .user-badge { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .user-info { min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-goal { font-size: 11px; color: var(--muted); }
+
+    /* ── Main ─────────────────────────────────────────────────── */
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Topbar ───────────────────────────────────────────────── */
+    #topbar {
+      padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+    }
+    #menu-toggle {
+      display: none; background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px;
+    }
+    .quote-pill {
+      flex: 1; background: var(--glass); border: 1px solid var(--border);
+      border-radius: 99px; padding: 8px 16px; font-size: 13px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .quote-pill span { color: var(--cyan); font-weight: 500; }
+
+    /* ── Stats Bar ────────────────────────────────────────────── */
+    #statsbar {
+      padding: 16px 24px; display: flex; gap: 16px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,.06); overflow-x: auto;
+    }
+    .stat-card {
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: var(--rad); padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+      flex-shrink: 0; min-width: 160px;
+    }
+    .ring-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+    .ring-wrap svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 5; }
+    .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
+    .ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .stat-info { min-width: 0; }
+    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
+    .stat-value { font-size: 18px; font-weight: 700; }
+    .stat-trend { font-size: 11px; color: var(--cyan); font-weight: 500; margin-top: 2px; }
+
+    /* ── Chat Area ────────────────────────────────────────────── */
+    #chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .msg { display: flex; gap: 12px; animation: fadeUp .3s ease both; }
+    .msg.user { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+    }
+    .msg.coach .msg-avatar { background: linear-gradient(135deg, var(--violet), var(--cyan)); }
+    .msg.user .msg-avatar { background: var(--bg3); color: var(--muted); }
+    .msg-bubble {
+      max-width: 70%; padding: 14px 18px; border-radius: 18px; font-size: 14px; line-height: 1.6;
+    }
+    .msg.coach .msg-bubble { background: var(--glass2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg.user .msg-bubble { background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.3); border-bottom-right-radius: 4px; }
+    .msg-time { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .msg.user .msg-time { text-align: right; }
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+    .typing-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); animation: pulse 1.4s ease infinite; }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    .welcome-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 40px; }
+    .welcome-state h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .welcome-state p { color: var(--muted); font-size: 15px; max-width: 400px; line-height: 1.6; }
+    .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 24px; }
+    .chip {
+      background: var(--glass); border: 1px solid var(--border); border-radius: 99px;
+      padding: 8px 16px; font-size: 13px; color: var(--text); cursor: pointer;
+      transition: all .2s; font-family: inherit;
+    }
+    .chip:hover { background: rgba(124,58,237,.15); border-color: var(--violet); }
+
+    /* ── Input Bar ────────────────────────────────────────────── */
+    #input-bar {
+      padding: 16px 24px; border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0;
+    }
+    #msg-input {
+      flex: 1; background: var(--glass2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 18px; color: var(--text);
+      font-family: inherit; font-size: 15px; resize: none; outline: none;
+      max-height: 140px; line-height: 1.5; transition: border-color .2s;
+    }
+    #msg-input:focus { border-color: var(--violet); }
+    #msg-input::placeholder { color: var(--muted); }
+    #send-btn {
+      width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--violet), var(--violet2));
+      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .2s; color: #fff;
+    }
+    #send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.4); }
+    #send-btn:active { transform: translateY(0); }
+    #send-btn svg { width: 20px; height: 20px; }
+    #send-btn.loading { pointer-events: none; opacity: .7; }
+
+    /* ── Animations ───────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 80%, 100% { transform: scale(.7); opacity: .4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ── Mobile ───────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed; left: 0; top: 0; bottom: 0; z-index: 50;
+        transform: translateX(-100%); box-shadow: 4px 0 40px rgba(0,0,0,.5);
+      }
+      #sidebar.open { transform: translateX(0); }
+      #sidebar-overlay {
+        display: none; position: fixed; inset: 0; z-index: 49;
+        background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+      }
+      #sidebar-overlay.show { display: block; }
+      #menu-toggle { display: flex; }
+      #main { width: 100%; }
+      .msg-bubble { max-width: 90%; }
+      #statsbar { padding: 12px 16px; gap: 12px; }
+      #chat-area { padding: 16px; }
+      #input-bar { padding: 12px 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Onboarding ──────────────────────────────────────────────── -->
+<div id="onboarding">
+  <div class="ob-card">
+    <div class="ob-logo">
+      <div class="ob-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      <span>Coach Atlas</span>
+    </div>
+    <h1 class="ob-title">Bienvenue sur<br><span>Coach Atlas</span></h1>
+    <p class="ob-sub">Ton assistant de coaching IA personnel. Dis-moi ton objectif pour personnaliser ton expérience.</p>
+    <p class="ob-label">Ton objectif principal</p>
+    <div class="ob-goals">
+      <div class="ob-goal" data-goal="career" onclick="selectGoal(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        </svg>
+        <span class="g-name">Carrière</span>
+        <span class="g-desc">Évolution pro & leadership</span>
+      </div>
+      <div class="ob-goal" data-goal="fitness" onclick="selectGoal(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+        </svg>
+        <span class="g-name">Fitness</span>
+        <span class="g-desc">Santé & performance physique</span>
+      </div>
+      <div class="ob-goal" data-goal="mindset" onclick="selectGoal(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+        </svg>
+        <span class="g-name">Mindset</span>
+        <span class="g-desc">Mental & développement perso</span>
+      </div>
+      <div class="ob-goal" data-goal="business" onclick="selectGoal(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        <span class="g-name">Business</span>
+        <span class="g-desc">Entrepreneuriat & stratégie</span>
+      </div>
+    </div>
+    <input class="ob-name" id="ob-name" type="text" placeholder="Ton prénom (optionnel)" />
+    <button class="btn-primary" onclick="startSession()">Commencer ma session →</button>
+  </div>
+</div>
+
+<!-- ── App ─────────────────────────────────────────────────────── -->
+<div id="app" style="display:none">
+
+  <!-- Sidebar overlay (mobile) -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">
+        <div class="sb-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        </div>
+        <span>Coach Atlas</span>
+      </div>
+      <button class="btn-new" onclick="newSession()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle session
+      </button>
+    </div>
+    <p class="sb-section">Historique</p>
+    <div class="sb-sessions" id="session-list"></div>
+    <div class="sb-footer">
+      <div class="user-badge">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="user-name">Utilisateur</div>
+          <div class="user-goal" id="user-goal">Objectif non défini</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div id="main">
+    <!-- Topbar -->
+    <div id="topbar">
+      <button id="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="quote-pill" id="daily-quote">Chargement de ta citation du jour…</div>
+    </div>
+
+    <!-- Stats -->
+    <div id="statsbar">
+      <div class="stat-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 56 56">
+            <circle class="ring-bg" cx="28" cy="28" r="23"/>
+            <circle class="ring-fill" id="ring-focus" cx="28" cy="28" r="23" stroke="#7c3aed"
+              stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+          </svg>
+          <div class="ring-val" id="val-focus" style="color:#7c3aed">0</div>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Focus</div>
+          <div class="stat-value" id="stat-focus">—</div>
+          <div class="stat-trend" id="trend-focus"></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 56 56">
+            <circle class="ring-bg" cx="28" cy="28" r="23"/>
+            <circle class="ring-fill" id="ring-energy" cx="28" cy="28" r="23" stroke="#06b6d4"
+              stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+          </svg>
+          <div class="ring-val" id="val-energy" style="color:#06b6d4">0</div>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Énergie</div>
+          <div class="stat-value" id="stat-energy">—</div>
+          <div class="stat-trend" id="trend-energy"></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 56 56">
+            <circle class="ring-bg" cx="28" cy="28" r="23"/>
+            <circle class="ring-fill" id="ring-clarity" cx="28" cy="28" r="23" stroke="#f59e0b"
+              stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+          </svg>
+          <div class="ring-val" id="val-clarity" style="color:#f59e0b">0</div>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">Clarté</div>
+          <div class="stat-value" id="stat-clarity">—</div>
+          <div class="stat-trend" id="trend-clarity"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div id="chat-area">
+      <div class="welcome-state" id="welcome-state">
+        <h2 id="welcome-title">Bonjour 👋</h2>
+        <p id="welcome-sub">Pose-moi ta première question ou choisis un sujet pour commencer.</p>
+        <div class="suggestion-chips" id="chips"></div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div id="input-bar">
+      <textarea id="msg-input" rows="1" placeholder="Écris ton message…" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button id="send-btn" onclick="sendMessage()" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Config ───────────────────────────────────────────────────── */
+// Pour appeler Claude directement depuis le front (démo sans backend) :
+// Remplace '' par ta clé sk-ant-... et décommente la ligne ANTHROPIC_KEY
+// En production, utilise une variable d'environnement côté serveur.
+const ANTHROPIC_KEY = '';   // ← sk-ant-xxxxxxxxxxxx (ou laisser vide pour mode démo)
+const API_URL = '/api/chat';  // endpoint backend (Vercel function, etc.)
+
+const QUOTES = [
+  "« Le succès, c'est aller d'échec en échec sans perdre son enthousiasme. » — Churchill",
+  "« La discipline est le pont entre les objectifs et les accomplissements. » — Jim Rohn",
+  "« Ce que tu penses, tu le deviens. » — Buddha",
+  "« Le moment de se lancer, c'est maintenant. » — Epictète",
+  "« Chaque expert a été un débutant. » — Helen Hayes",
+  "« L'action est la clé fondamentale de tout succès. » — Picasso",
+  "« Ta vie ne s'améliore pas par hasard, elle s'améliore par le changement. » — Jim Rohn",
+];
+
+const SUGGESTIONS = {
+  career:  ['Comment progresser dans ma carrière ?', 'Je prépare un entretien', 'Comment développer mon leadership ?', 'Je veux changer de métier'],
+  fitness: ['Programme d\'entraînement pour débutant', 'Comment rester motivé ?', 'Nutrition et récupération', 'Fixer mes objectifs fitness'],
+  mindset: ['Gérer le stress quotidien', 'Développer ma confiance', 'Techniques de méditation', 'Arrêter la procrastination'],
+  business:['Valider mon idée business', 'Trouver mes premiers clients', 'Structurer mon offre', 'Gérer ma croissance'],
+};
+
+const SYSTEM_PROMPTS = {
+  career:  'Tu es Coach Atlas, un expert en développement de carrière et leadership. Tu parles français avec bienveillance, précision et pragmatisme. Tu poses des questions ciblées pour comprendre la situation avant de conseiller.',
+  fitness: 'Tu es Coach Atlas, un coach fitness et bien-être. Tu parles français avec énergie et encouragement. Tu proposes des conseils pratiques adaptés au niveau de l\'utilisateur.',
+  mindset: 'Tu es Coach Atlas, un coach en développement personnel et mindset. Tu parles français avec douceur et profondeur. Tu utilises des techniques de PNL et de psychologie positive.',
+  business:'Tu es Coach Atlas, un expert en entrepreneuriat et stratégie business. Tu parles français avec pragmatisme et vision. Tu poses les bonnes questions pour débloquer la réflexion.',
+};
+
+/* ── State ────────────────────────────────────────────────────── */
+let state = {
+  name: '',
+  goal: '',
+  sessions: [],
+  currentSession: null,
+  messages: [],
+  stats: { focus: 0, energy: 0, clarity: 0 },
+};
+
+/* ── Onboarding ───────────────────────────────────────────────── */
+function selectGoal(el) {
+  document.querySelectorAll('.ob-goal').forEach(g => g.classList.remove('selected'));
+  el.classList.add('selected');
+  state.goal = el.dataset.goal;
+}
+
+function startSession() {
+  if (!state.goal) { alert('Choisis un objectif d\'abord !'); return; }
+  state.name = document.getElementById('ob-name').value.trim() || 'Coach';
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+/* ── Init ─────────────────────────────────────────────────────── */
+function initApp() {
+  // Quote
+  const q = QUOTES[new Date().getDate() % QUOTES.length];
+  document.getElementById('daily-quote').innerHTML = `<span>Citation du jour</span> — ${q.replace(/«|»/g, m => m === '«' ? '"' : '"')}`;
+
+  // User badge
+  const init = state.name[0].toUpperCase();
+  document.getElementById('user-avatar').textContent = init;
+  document.getElementById('user-name').textContent = state.name;
+  const goalLabels = { career:'Carrière', fitness:'Fitness', mindset:'Mindset', business:'Business' };
+  document.getElementById('user-goal').textContent = goalLabels[state.goal];
+
+  // Welcome
+  document.getElementById('welcome-title').textContent = `Bonjour ${state.name} !`;
+  document.getElementById('welcome-sub').textContent = 'Pose-moi ta première question ou choisis un sujet ci-dessous.';
+
+  // Chips
+  const chips = document.getElementById('chips');
+  chips.innerHTML = '';
+  (SUGGESTIONS[state.goal] || []).forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = s;
+    b.onclick = () => { document.getElementById('msg-input').value = s; sendMessage(); };
+    chips.appendChild(b);
+  });
+
+  // Stats (demo values)
+  const statsDemo = { focus: 72, energy: 58, clarity: 85 };
+  setTimeout(() => animateStats(statsDemo), 400);
+
+  // Session
+  newSession();
+}
+
+/* ── Stats rings ──────────────────────────────────────────────── */
+function animateStats({ focus, energy, clarity }) {
+  const circ = 144.51;
+  const rings = [
+    { id: 'focus',   val: focus,   el: 'ring-focus',   vEl: 'val-focus',   sEl: 'stat-focus',   tEl: 'trend-focus',   label: '/100', trend: '+5 cette semaine' },
+    { id: 'energy',  val: energy,  el: 'ring-energy',  vEl: 'val-energy',  sEl: 'stat-energy',  tEl: 'trend-energy',  label: '/100', trend: '+12 ce mois' },
+    { id: 'clarity', val: clarity, el: 'ring-clarity', vEl: 'val-clarity', sEl: 'stat-clarity', tEl: 'trend-clarity', label: '/100', trend: 'Record personnel' },
+  ];
+  rings.forEach(r => {
+    const offset = circ - (r.val / 100) * circ;
+    document.getElementById(r.el).style.strokeDashoffset = offset;
+    document.getElementById(r.vEl).textContent = r.val;
+    document.getElementById(r.sEl).textContent = r.val + r.label;
+    document.getElementById(r.tEl).textContent = r.trend;
+    state.stats[r.id] = r.val;
+  });
+}
+
+/* ── Sessions ─────────────────────────────────────────────────── */
+function newSession() {
+  const id = Date.now();
+  const session = { id, name: 'Session ' + (state.sessions.length + 1), date: new Date(), messages: [] };
+  state.sessions.unshift(session);
+  state.currentSession = session;
+  state.messages = [];
+  renderSessions();
+  clearChat();
+}
+
+function renderSessions() {
+  const list = document.getElementById('session-list');
+  list.innerHTML = '';
+  state.sessions.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'session-item' + (s.id === state.currentSession?.id ? ' active' : '');
+    div.innerHTML = `
+      <div class="session-dot"></div>
+      <div class="session-info">
+        <div class="session-name">${s.name}</div>
+        <div class="session-date">${formatDate(s.date)}</div>
+      </div>`;
+    div.onclick = () => loadSession(s);
+    list.appendChild(div);
+  });
+}
+
+function loadSession(session) {
+  state.currentSession = session;
+  state.messages = [...session.messages];
+  clearChat();
+  if (state.messages.length === 0) return;
+  document.getElementById('welcome-state').style.display = 'none';
+  state.messages.forEach(m => appendMessage(m.role, m.content, false));
+  renderSessions();
+}
+
+function clearChat() {
+  const area = document.getElementById('chat-area');
+  area.innerHTML = '';
+  const ws = document.createElement('div');
+  ws.className = 'welcome-state';
+  ws.id = 'welcome-state';
+  ws.innerHTML = `
+    <h2 id="welcome-title">Bonjour ${state.name} !</h2>
+    <p id="welcome-sub">Nouvelle session — Pose-moi ta première question.</p>
+    <div class="suggestion-chips" id="chips"></div>`;
+  area.appendChild(ws);
+  const chips = ws.querySelector('#chips');
+  (SUGGESTIONS[state.goal] || []).forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = s;
+    b.onclick = () => { document.getElementById('msg-input').value = s; sendMessage(); };
+    chips.appendChild(b);
+  });
+}
+
+/* ── Chat ─────────────────────────────────────────────────────── */
+function appendMessage(role, content, animate = true) {
+  const ws = document.getElementById('welcome-state');
+  if (ws) ws.remove();
+
+  const area = document.getElementById('chat-area');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + role;
+  if (!animate) wrap.style.animation = 'none';
+
+  const initials = role === 'coach' ? 'CA' : (state.name[0] || 'U').toUpperCase();
+  wrap.innerHTML = `
+    <div class="msg-avatar">${initials}</div>
+    <div>
+      <div class="msg-bubble">${escHtml(content).replace(/\n/g, '<br>')}</div>
+      <div class="msg-time">${formatTime(new Date())}</div>
+    </div>`;
+  area.appendChild(wrap);
+  area.scrollTop = area.scrollHeight;
+}
+
+function appendTyping() {
+  const ws = document.getElementById('welcome-state');
+  if (ws) ws.remove();
+  const area = document.getElementById('chat-area');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg coach';
+  wrap.id = 'typing-msg';
+  wrap.innerHTML = `
+    <div class="msg-avatar">CA</div>
+    <div><div class="msg-bubble"><div class="typing-indicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div></div></div>`;
+  area.appendChild(wrap);
+  area.scrollTop = area.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = '';
+
+  appendMessage('user', text);
+  state.messages.push({ role: 'user', content: text });
+
+  const btn = document.getElementById('send-btn');
+  btn.classList.add('loading');
+  appendTyping();
+
+  try {
+    const reply = await callCoach(text);
+    document.getElementById('typing-msg')?.remove();
+    appendMessage('coach', reply);
+    state.messages.push({ role: 'coach', content: reply });
+    if (state.currentSession) {
+      state.currentSession.messages = [...state.messages];
+      // Update session name from first user message
+      if (state.currentSession.messages.filter(m => m.role === 'user').length === 1) {
+        state.currentSession.name = text.slice(0, 35) + (text.length > 35 ? '…' : '');
+        renderSessions();
+      }
+    }
+    // Simulate stat update on each exchange
+    updateStatsDelta();
+  } catch (e) {
+    document.getElementById('typing-msg')?.remove();
+    appendMessage('coach', 'Désolé, une erreur est survenue. Vérifie ta connexion ou ta clé API.');
+    console.error(e);
+  } finally {
+    btn.classList.remove('loading');
+    input.focus();
+  }
+}
+
+/* ── API call ─────────────────────────────────────────────────── */
+async function callCoach(message) {
+  // ── Option A : appel direct à Claude (front-end, clé visible) ──
+  if (ANTHROPIC_KEY) {
+    const history = state.messages.slice(-10).map(m => ({
+      role: m.role === 'coach' ? 'assistant' : 'user',
+      content: m.content,
+    }));
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-allow-browser': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: SYSTEM_PROMPTS[state.goal] || SYSTEM_PROMPTS.mindset,
+        messages: history,
+      }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    return data.content[0].text;
+  }
+
+  // ── Option B : appel via ton backend Vercel ─────────────────────
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, goal: state.goal, history: state.messages.slice(-10) }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.reply || data.message || JSON.stringify(data);
+}
+
+/* ── Helpers ──────────────────────────────────────────────────── */
+function autoResize(el) {
+  el.style.height = '';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
+}
+
+function formatTime(d) {
+  return d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+}
+
+function updateStatsDelta() {
+  const delta = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const newStats = {
+    focus:   Math.min(100, state.stats.focus   + delta(-2, 5)),
+    energy:  Math.min(100, state.stats.energy  + delta(-1, 4)),
+    clarity: Math.min(100, state.stats.clarity + delta(0, 6)),
+  };
+  animateStats(newStats);
+}
+</script>
+</body>
+</html>

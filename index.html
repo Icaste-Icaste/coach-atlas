@@ -755,11 +755,23 @@ function saveKey() {
 function startSession() {
   state.name = localStorage.getItem('coach_atlas_name') || 'Noah';
   localStorage.setItem('coach_atlas_name', state.name);
+  localStorage.setItem('coach_atlas_onboarded', '1');
   document.getElementById('onboarding').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   if (!getAnthropicKey()) { showKeyModal(); }
   initApp();
 }
+
+// Auto-skip onboarding si déjà fait (ex: retour depuis OAuth Strava)
+function autoSkipOnboarding() {
+  if (localStorage.getItem('coach_atlas_onboarded') === '1') {
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    state.name = localStorage.getItem('coach_atlas_name') || 'Noah';
+    initApp();
+  }
+}
+autoSkipOnboarding();
 
 /* ── Init ─────────────────────────────────────────────────────── */
 async function initApp() {

@@ -39,11 +39,63 @@ async function tgAnswer(callbackQueryId: string) {
   });
 }
 
+const USER_ID = 'u_6vb0si3amp8sxkkw';
+const TG_SESSION_ID = 'telegram_main';
+
 async function sbGet(path: string) {
   const r = await fetch(`${SB_URL}/rest/v1${path}`, {
     headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
   });
   return r.json();
+}
+
+// Charge l'historique unifié (web + telegram) pour le contexte Claude
+async function loadFullHistory(): Promise<{role:string, content:string}[]> {
+  try {
+    const rows = await sbGet(
+      `/coach_sessions?user_id=eq.${USER_ID}&order=updated_at.desc&limit=5&select=messages,name`
+    );
+    const all: {role:string, content:string}[] = [];
+    for (const row of (rows || [])) {
+      const msgs = Array.isArray(row.messages) ? row.messages : [];
+      all.push(...msgs.map((m: {role:string, content:string}) => ({
+        role: m.role === 'coach' ? 'assistant' : 'user',
+        content: m.content || '',
+      })));
+    }
+    return all.slice(-20); // 20 derniers messages pour contexte
+  } catch { return []; }
+}
+
+// Sauvegarde message dans la session Telegram unifiée
+async function saveToSession(userMsg: string, coachReply: string) {
+  try {
+    const rows = await sbGet(
+      `/coach_sessions?id=eq.${TG_SESSION_ID}&select=messages`
+    );
+    const existing = rows?.[0]?.messages || [];
+    const updated = [
+      ...existing,
+      { role: 'user',  content: userMsg,    channel: 'telegram', ts: new Date().toISOString() },
+      { role: 'coach', content: coachReply, channel: 'telegram', ts: new Date().toISOString() },
+    ];
+    await fetch(`${SB_URL}/rest/v1/coach_sessions`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify({
+        id: TG_SESSION_ID,
+        user_id: USER_ID,
+        name: '📱 Telegram',
+        goal: 'andorre',
+        messages: updated,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch(e) { console.error('saveToSession:', e); }
 }
 
 async function sbUpsert(table: string, data: Record<string, unknown>) {
@@ -57,18 +109,23 @@ async function sbUpsert(table: string, data: Record<string, unknown>) {
   });
 }
 
-async function claudeEncourage(context: string): Promise<string> {
+async function claudeReply(userContent: string, extraContext = ''): Promise<string> {
+  const history = await loadFullHistory();
+  const messages = [
+    ...history,
+    { role: 'user', content: extraContext ? `${extraContext}\n\n${userContent}` : userContent },
+  ];
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': ANT_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 300,
+      model: 'claude-haiku-4-5-20251001', max_tokens: 400,
       system: SYSTEM,
-      messages: [{ role: 'user', content: context }],
+      messages,
     }),
   });
   const d = await res.json();
-  return d.content?.[0]?.text || 'Super sortie Noah ! Continue comme ça 💪';
+  return d.content?.[0]?.text || 'Continue comme ça Noah ! 💪';
 }
 
 // Envoie les 3 questions après une activité
@@ -172,15 +229,18 @@ Mental : ${answers.mental}
 Génère un message d'encouragement personnalisé.`;
 
     await tgSend('⏳ Coach Atlas analyse ton ressenti…');
-    const encouragement = await claudeEncourage(context);
+    const encouragement = await claudeReply('Génère un message d\'encouragement personnalisé.', context);
     await tgSend(encouragement);
+    // Sauvegarde dans l'historique unifié
+    const summary = `[Post-sortie ${st.activity_name}] Ressenti: ${answers.ressenti} | Corps: ${answers.corps} | Mental: ${answers.mental}`;
+    await saveToSession(summary, encouragement);
   }
 }
 
 async function handleTextMessage(text: string) {
-  // Réponse libre — Coach Atlas répond
-  const encourage = await claudeEncourage(`Noah t'écrit : "${text}". Réponds comme son coach personnel.`);
-  await tgSend(encourage);
+  const reply = await claudeReply(text);
+  await tgSend(reply);
+  await saveToSession(text, reply);
 }
 
 Deno.serve(async (req) => {

@@ -175,6 +175,30 @@ async function processActivity(event: Record<string, unknown>) {
 
   await sendTelegram(msg);
 
+  // Sauvegarde dans l'historique unifié
+  try {
+    const prevR = await sbFetch('/coach_sessions?id=eq.telegram_main&select=messages');
+    const prevRows = await prevR.json();
+    const prevMsgs = prevRows?.[0]?.messages || [];
+    const cleanAnalysis = analysis || `${distKm} km | ${activity.elevation_m} m D+ — synced automatiquement`;
+    await sbFetch('/coach_sessions', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' } as Record<string,string>,
+      body: JSON.stringify({
+        id: 'telegram_main',
+        user_id: tokenData.user_id,
+        name: '📱 Telegram',
+        goal: 'andorre',
+        messages: [
+          ...prevMsgs,
+          { role: 'user',  content: `[Strava] ${act.name} — ${distKm} km / ${activity.elevation_m} m D+`, channel: 'strava', ts: new Date().toISOString() },
+          { role: 'coach', content: cleanAnalysis, channel: 'telegram', ts: new Date().toISOString() },
+        ],
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch(e) { console.error('save unified history:', e); }
+
   // Questions de ressenti 3 secondes après l'analyse
   await new Promise(r => setTimeout(r, 3000));
   const stats = `${distKm} km | ${activity.elevation_m} m D+ | ${Math.floor(act.moving_time/3600)}h${Math.floor((act.moving_time%3600)/60)}min | ${pace}`;

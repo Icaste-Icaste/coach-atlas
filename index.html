@@ -1205,7 +1205,7 @@ function connectStrava() {
   window.location.href = stravaOAuthURL();
 }
 
-async function syncStravaHistory(btn: HTMLButtonElement) {
+async function syncStravaHistory(btn) {
   const original = btn.textContent;
   btn.textContent = '⏳ Import en cours…';
   btn.disabled = true;
@@ -1218,10 +1218,10 @@ async function syncStravaHistory(btn: HTMLButtonElement) {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     btn.textContent = `✅ ${data.total} activités importées !`;
-    appendMessage('coach', `✅ Historique Strava importé — **${data.total} activités** chargées dans ta base.\n\nJe peux maintenant analyser ton évolution sur les semaines passées, identifier tes pics de charge, et calibrer précisément ton plan pour l'UTMB Andorre et Lyon→Nice. Pose-moi une question sur ton historique !`);
+    appendMessage('coach', `Historique Strava importé — ${data.total} activités chargées.\n\nJe peux maintenant analyser ton évolution semaine par semaine, identifier tes pics de charge et calibrer ton plan UTMB Andorre + Lyon→Nice. Pose-moi une question sur ton historique !`);
     setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 5000);
   } catch(e) {
-    btn.textContent = `❌ Erreur — ${(e as Error).message}`;
+    btn.textContent = '❌ Erreur — ' + e.message;
     setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 3000);
   }
 }

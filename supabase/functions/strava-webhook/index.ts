@@ -160,6 +160,53 @@ async function processActivity(event: Record<string, unknown>) {
     : `🏃 <b>${act.name}</b> synced !\n\n📊 ${distKm} km | ${activity.elevation_m} m D+ | ${Math.floor(act.moving_time/3600)}h${Math.floor((act.moving_time%3600)/60)}min | ${pace}${activity.avg_hr ? ` | ❤️ ${activity.avg_hr} bpm` : ''}\n\nOuvre Coach Atlas pour l'analyse complète.`;
 
   await sendTelegram(msg);
+
+  // Questions de ressenti 3 secondes après l'analyse
+  await new Promise(r => setTimeout(r, 3000));
+  const stats = `${distKm} km | ${activity.elevation_m} m D+ | ${Math.floor(act.moving_time/3600)}h${Math.floor((act.moving_time%3600)/60)}min | ${pace}`;
+  await sendRessentQuestions(act.name, stats);
+}
+
+async function sendRessentQuestions(activityName: string, stats: string) {
+  const SB_URL_LOCAL = Deno.env.get('SUPABASE_URL')!;
+  const SB_KEY_LOCAL = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const TG_TOKEN_LOCAL = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
+  const TG_CHAT_LOCAL = Deno.env.get('TELEGRAM_CHAT_ID')!;
+
+  // Sauvegarde l'état
+  await fetch(`${SB_URL_LOCAL}/rest/v1/telegram_state`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY_LOCAL, 'Authorization': `Bearer ${SB_KEY_LOCAL}`,
+      'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal',
+    },
+    body: JSON.stringify({
+      chat_id: TG_CHAT_LOCAL,
+      state: 'waiting_q1',
+      activity_name: activityName,
+      activity_stats: stats,
+      answers: {},
+      updated_at: new Date().toISOString(),
+    }),
+  });
+
+  // Envoie la première question
+  await fetch(`https://api.telegram.org/bot${TG_TOKEN_LOCAL}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: TG_CHAT_LOCAL,
+      text: `💬 Comment tu te sens après "${activityName}" ?`,
+      reply_markup: {
+        inline_keyboard: [[
+          { text: '💪 Au top', callback_data: 'q1_top' },
+          { text: '😊 Bien', callback_data: 'q1_bien' },
+          { text: '😐 Moyen', callback_data: 'q1_moyen' },
+          { text: '😓 Fatigué', callback_data: 'q1_fatigue' },
+        ]],
+      },
+    }),
+  });
 }
 
 Deno.serve(async (req) => {
@@ -186,3 +233,6 @@ Deno.serve(async (req) => {
   }
   return new Response('ok', { headers: CORS });
 });
+
+// Export pour usage depuis d'autres fonctions
+export { sendTelegram };

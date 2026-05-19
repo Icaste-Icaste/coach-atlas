@@ -507,6 +507,7 @@
         </div>
         <span>Coach Atlas</span>
       </div>
+      <div id="strava-btn-wrap" style="margin-bottom:8px;"></div>
       <button class="btn-new" onclick="openRecap()" style="margin-bottom:8px;background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.3);color:var(--cyan)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Récap hebdo
@@ -629,9 +630,11 @@ function getAnthropicKey() { return localStorage.getItem('coach_atlas_apikey') |
 function setAnthropicKey(k) { localStorage.setItem('coach_atlas_apikey', k); }
 const ANTHROPIC_KEY = null; // sentinel — on utilise getAnthropicKey() partout
 const API_URL = '/api/chat';
-const SB_URL      = 'https://qbusyfjyrdqfuhzccnua.supabase.co';
-const SB_KEY      = 'sb_publishable_b_J5OKoc_vmi3FOt620Jhg_tNjC04Ot';
-const PROXY_URL   = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/chat';
+const SB_URL        = 'https://qbusyfjyrdqfuhzccnua.supabase.co';
+const SB_KEY        = 'sb_publishable_b_J5OKoc_vmi3FOt620Jhg_tNjC04Ot';
+const PROXY_URL     = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/chat';
+const STRAVA_CLIENT_ID = '247715';
+const STRAVA_AUTH_URL  = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/strava-auth';
 
 const QUOTES = [
   "« L'ultra ne se court pas avec les jambes, il se court avec le cœur. » — Kilian Jornet",
@@ -783,6 +786,12 @@ async function initApp() {
   renderShareLink();
   // Toast dimanche
   setTimeout(checkSundayToast, 2000);
+  // Strava
+  renderStravaButton();
+  await checkStravaCallback();
+  if (localStorage.getItem('strava_connected') === '1') {
+    setTimeout(loadRecentStravaActivities, 1500);
+  }
 }
 
 async function loadAllSessions() {
@@ -1152,6 +1161,97 @@ async function analyzeImageWithClaude(base64, mediaType, userText) {
     },
   ];
   return callAnthropicAPI(messages);
+}
+
+/* ── Strava ───────────────────────────────────────────────────── */
+function stravaOAuthURL() {
+  const uid = getUserId();
+  return `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA_AUTH_URL)}&approval_prompt=auto&scope=activity:read_all&state=${uid}`;
+}
+
+function renderStravaButton() {
+  const wrap = document.getElementById('strava-btn-wrap');
+  if (!wrap) return;
+  const connected = localStorage.getItem('strava_connected') === '1';
+  const athleteName = localStorage.getItem('strava_athlete_name') || '';
+  const avatar = localStorage.getItem('strava_athlete_avatar') || '';
+
+  if (connected) {
+    wrap.innerHTML = `
+      <div style="background:rgba(252,82,0,.1);border:1px solid rgba(252,82,0,.3);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;">
+        ${avatar ? `<img src="${avatar}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />` : ''}
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:11px;font-weight:700;color:#fc5200;">Strava connecté</div>
+          <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${athleteName}</div>
+        </div>
+        <button onclick="disconnectStrava()" title="Déconnecter" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;">✕</button>
+      </div>`;
+  } else {
+    wrap.innerHTML = `
+      <button onclick="connectStrava()" class="btn-new" style="background:rgba(252,82,0,.1);border-color:rgba(252,82,0,.3);color:#fc5200;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        Connecter Strava
+      </button>`;
+  }
+}
+
+function connectStrava() {
+  window.location.href = stravaOAuthURL();
+}
+
+function disconnectStrava() {
+  localStorage.removeItem('strava_connected');
+  localStorage.removeItem('strava_athlete_name');
+  localStorage.removeItem('strava_athlete_avatar');
+  renderStravaButton();
+}
+
+async function checkStravaCallback() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('strava') === 'connected') {
+    localStorage.setItem('strava_connected', '1');
+    history.replaceState(null, '', location.pathname);
+    // Charge le profil athlète depuis Supabase
+    await loadStravaProfile();
+    renderStravaButton();
+    // Annonce la connexion dans le chat
+    appendMessage('coach', '🟠 Strava connecté ! Dès que tu termines une activité, je la récupère automatiquement et l\'intègre dans ton suivi. Tu n\'as plus rien à saisir manuellement.');
+  }
+}
+
+async function loadStravaProfile() {
+  const uid = getUserId();
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/strava_tokens?user_id=eq.${uid}&select=athlete_name,athlete_avatar`, { headers: sbHeaders() });
+    const data = await res.json();
+    if (data[0]) {
+      localStorage.setItem('strava_athlete_name', data[0].athlete_name || '');
+      localStorage.setItem('strava_athlete_avatar', data[0].athlete_avatar || '');
+    }
+  } catch(e) {}
+}
+
+async function loadRecentStravaActivities() {
+  const uid = getUserId();
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/strava_activities?user_id=eq.${uid}&order=start_date.desc&limit=5`,
+      { headers: sbHeaders() }
+    );
+    const acts = await res.json();
+    if (!acts?.length) return;
+    // Notifie le coach des activités récentes si pas encore vu
+    const lastSeen = localStorage.getItem('strava_last_seen');
+    const newActs = acts.filter(a => !lastSeen || new Date(a.start_date) > new Date(lastSeen));
+    if (newActs.length > 0) {
+      localStorage.setItem('strava_last_seen', acts[0].start_date);
+      const summary = newActs.map(a => {
+        const pace = a.avg_pace ? `${Math.floor(a.avg_pace/60)}'${String(Math.round(a.avg_pace%60)).padStart(2,'0')}"` : '—';
+        return `• ${a.name} — ${a.distance_km} km | ${a.elevation_m} m D+ | Allure ${pace}/km${a.avg_hr ? ` | FC moy ${a.avg_hr} bpm` : ''}`;
+      }).join('\n');
+      appendMessage('coach', `📥 Nouvelle activité Strava synced :\n${summary}\n\nVeux-tu que j'analyse cette sortie ?`);
+    }
+  } catch(e) {}
 }
 
 /* ── Supabase persistence ─────────────────────────────────────── */

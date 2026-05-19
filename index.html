@@ -156,24 +156,40 @@
 
     /* ── Stats Bar ────────────────────────────────────────────── */
     #statsbar {
-      padding: 16px 24px; display: flex; gap: 16px; flex-shrink: 0;
+      padding: 12px 24px; display: flex; gap: 12px; flex-shrink: 0;
       border-bottom: 1px solid rgba(255,255,255,.06); overflow-x: auto;
     }
     .stat-card {
       background: var(--glass); border: 1px solid var(--border);
-      border-radius: var(--rad); padding: 16px 20px;
-      display: flex; align-items: center; gap: 16px;
-      flex-shrink: 0; min-width: 160px;
+      border-radius: var(--rad); padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px;
+      flex-shrink: 0; min-width: 150px;
     }
-    .ring-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
-    .ring-wrap svg { width: 56px; height: 56px; transform: rotate(-90deg); }
+    .ring-wrap { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+    .ring-wrap svg { width: 52px; height: 52px; transform: rotate(-90deg); }
     .ring-bg { fill: none; stroke: rgba(255,255,255,.08); stroke-width: 5; }
     .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
-    .ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+    .ring-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
     .stat-info { min-width: 0; }
-    .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
-    .stat-value { font-size: 18px; font-weight: 700; }
-    .stat-trend { font-size: 11px; color: var(--cyan); font-weight: 500; margin-top: 2px; }
+    .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
+    .stat-value { font-size: 17px; font-weight: 700; }
+    .stat-trend { font-size: 10px; color: var(--cyan); font-weight: 500; margin-top: 2px; }
+    /* Activity feed */
+    #activity-feed {
+      padding: 8px 24px; display: flex; gap: 10px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,.06); overflow-x: auto;
+    }
+    .act-chip {
+      background: var(--glass); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 14px; flex-shrink: 0; cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .act-chip:hover { border-color: var(--violet); background: rgba(124,58,237,.1); }
+    .act-chip-icon { font-size: 16px; }
+    .act-chip-info { min-width: 0; }
+    .act-chip-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+    .act-chip-stats { font-size: 10px; color: var(--muted); }
+    .strava-loading { color: var(--muted); font-size: 12px; padding: 8px; }
 
     /* ── Chat Area ────────────────────────────────────────────── */
     #chat-area { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
@@ -547,50 +563,52 @@
     <div id="statsbar">
       <div class="stat-card">
         <div class="ring-wrap">
-          <svg viewBox="0 0 56 56">
-            <circle class="ring-bg" cx="28" cy="28" r="23"/>
-            <circle class="ring-fill" id="ring-focus" cx="28" cy="28" r="23" stroke="#7c3aed"
-              stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+          <svg viewBox="0 0 52 52">
+            <circle class="ring-bg" cx="26" cy="26" r="21"/>
+            <circle class="ring-fill" id="ring-focus" cx="26" cy="26" r="21" stroke="#7c3aed"
+              stroke-dasharray="131.95" stroke-dashoffset="131.95"/>
           </svg>
-          <div class="ring-val" id="val-focus" style="color:#7c3aed">0</div>
+          <div class="ring-val" id="val-focus" style="color:#7c3aed">—</div>
         </div>
         <div class="stat-info">
-          <div class="stat-label">Focus</div>
-          <div class="stat-value" id="stat-focus">—</div>
+          <div class="stat-label">Charge sem.</div>
+          <div class="stat-value" id="stat-focus">— km</div>
           <div class="stat-trend" id="trend-focus"></div>
         </div>
       </div>
       <div class="stat-card">
         <div class="ring-wrap">
-          <svg viewBox="0 0 56 56">
-            <circle class="ring-bg" cx="28" cy="28" r="23"/>
-            <circle class="ring-fill" id="ring-energy" cx="28" cy="28" r="23" stroke="#06b6d4"
-              stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+          <svg viewBox="0 0 52 52">
+            <circle class="ring-bg" cx="26" cy="26" r="21"/>
+            <circle class="ring-fill" id="ring-energy" cx="26" cy="26" r="21" stroke="#06b6d4"
+              stroke-dasharray="131.95" stroke-dashoffset="131.95"/>
           </svg>
-          <div class="ring-val" id="val-energy" style="color:#06b6d4">0</div>
+          <div class="ring-val" id="val-energy" style="color:#06b6d4">—</div>
         </div>
         <div class="stat-info">
-          <div class="stat-label">Énergie</div>
-          <div class="stat-value" id="stat-energy">—</div>
+          <div class="stat-label">D+ semaine</div>
+          <div class="stat-value" id="stat-energy">— m</div>
           <div class="stat-trend" id="trend-energy"></div>
         </div>
       </div>
       <div class="stat-card">
         <div class="ring-wrap">
-          <svg viewBox="0 0 56 56">
-            <circle class="ring-bg" cx="28" cy="28" r="23"/>
-            <circle class="ring-fill" id="ring-clarity" cx="28" cy="28" r="23" stroke="#f59e0b"
-              stroke-dasharray="144.51" stroke-dashoffset="144.51"/>
+          <svg viewBox="0 0 52 52">
+            <circle class="ring-bg" cx="26" cy="26" r="21"/>
+            <circle class="ring-fill" id="ring-clarity" cx="26" cy="26" r="21" stroke="#f59e0b"
+              stroke-dasharray="131.95" stroke-dashoffset="131.95"/>
           </svg>
-          <div class="ring-val" id="val-clarity" style="color:#f59e0b">0</div>
+          <div class="ring-val" id="val-clarity" style="color:#f59e0b">—</div>
         </div>
         <div class="stat-info">
-          <div class="stat-label">Clarté</div>
+          <div class="stat-label">Forme</div>
           <div class="stat-value" id="stat-clarity">—</div>
           <div class="stat-trend" id="trend-clarity"></div>
         </div>
       </div>
     </div>
+    <!-- Activités récentes Strava -->
+    <div id="activity-feed"><span class="strava-loading">Chargement activités…</span></div>
 
     <!-- Chat -->
     <div id="chat-area">
@@ -785,12 +803,8 @@ async function initApp() {
   const goalLabels = { andorre:'UTMB Andorre — J-30', lyonnice:'Lyon → Nice 500 km', triathlon:'Triathlon' };
   document.getElementById('user-goal').textContent = goalLabels[state.goal] || 'Trail & Ultra';
 
-  // Stats (trail-specific labels)
-  document.querySelector('#statsbar .stat-card:nth-child(1) .stat-label').textContent = 'Charge';
-  document.querySelector('#statsbar .stat-card:nth-child(2) .stat-label').textContent = 'Récup';
-  document.querySelector('#statsbar .stat-card:nth-child(3) .stat-label').textContent = 'Forme';
-  const statsDemo = { focus: 68, energy: 74, clarity: 81 };
-  setTimeout(() => animateStats(statsDemo), 400);
+  // Charge les vraies stats Strava
+  setTimeout(() => loadStravaStats(), 600);
 
   // Charge sessions depuis Supabase + localStorage
   await loadAllSessions();
@@ -1174,6 +1188,119 @@ async function analyzeImageWithClaude(base64, mediaType, userText) {
     },
   ];
   return callAnthropicAPI(messages);
+}
+
+/* ── Stats Strava réelles ─────────────────────────────────────── */
+async function loadStravaStats() {
+  if (localStorage.getItem('strava_connected') !== '1') {
+    // Stats démo si pas connecté
+    animateStats({ focus: 68, energy: 74, clarity: 81 });
+    document.getElementById('activity-feed').innerHTML = '';
+    return;
+  }
+
+  const uid = getUserId();
+  const circ = 131.95;
+  const TARGET_KM = 65; // objectif hebdo Noah
+
+  try {
+    // Fetch activités des 3 dernières semaines
+    const since = new Date();
+    since.setDate(since.getDate() - 21);
+    const res = await fetch(
+      `${SB_URL}/rest/v1/strava_activities?user_id=eq.${uid}&start_date=gte.${since.toISOString()}&order=start_date.desc&select=name,type,distance_km,elevation_m,duration_s,avg_pace,avg_hr,start_date&limit=60`,
+      { headers: sbHeaders() }
+    );
+    const acts = await res.json();
+    if (!Array.isArray(acts) || acts.length === 0) {
+      animateStats({ focus: 68, energy: 74, clarity: 81 });
+      document.getElementById('activity-feed').innerHTML = '<span class="strava-loading">Importe ton historique Strava pour voir tes stats réelles.</span>';
+      return;
+    }
+
+    // Calcule la semaine courante et précédente
+    const wStart = getWeekStart();
+    const wPrev  = new Date(wStart); wPrev.setDate(wPrev.getDate() - 7);
+
+    let curKm = 0, curD = 0, curSess = 0;
+    let prevKm = 0, prevD = 0;
+
+    for (const a of acts) {
+      const d = new Date(a.start_date);
+      if (d >= wStart) {
+        curKm  += a.distance_km  || 0;
+        curD   += a.elevation_m  || 0;
+        curSess++;
+      } else if (d >= wPrev) {
+        prevKm += a.distance_km  || 0;
+        prevD  += a.elevation_m  || 0;
+      }
+    }
+
+    curKm  = Math.round(curKm * 10) / 10;
+    curD   = Math.round(curD);
+    prevKm = Math.round(prevKm * 10) / 10;
+    prevD  = Math.round(prevD);
+
+    // Charge % vs objectif
+    const chargeP = Math.min(100, Math.round((curKm / TARGET_KM) * 100));
+    // D+ % vs objectif (2500 m/sem)
+    const dplusP  = Math.min(100, Math.round((curD  / 2500)     * 100));
+    // Forme = tendance : si curKm >= prevKm → bonne forme
+    const tendance = prevKm > 0 ? Math.min(100, Math.round((curKm / prevKm) * 80)) : 75;
+
+    // Mise à jour anneaux
+    const rings = [
+      { id: 'ring-focus',   pct: chargeP, val: 'val-focus',   stat: 'stat-focus',   trend: 'trend-focus',
+        statTxt: `${curKm} km`, trendTxt: prevKm ? `${curKm >= prevKm ? '+' : ''}${(curKm-prevKm).toFixed(1)} vs sem. préc.` : `${curSess} sessions` },
+      { id: 'ring-energy',  pct: dplusP,  val: 'val-energy',  stat: 'stat-energy',  trend: 'trend-energy',
+        statTxt: `${curD} m`, trendTxt: prevD ? `${curD >= prevD ? '+' : ''}${curD-prevD} m vs sem. préc.` : '—' },
+      { id: 'ring-clarity', pct: tendance, val: 'val-clarity', stat: 'stat-clarity', trend: 'trend-clarity',
+        statTxt: tendance >= 90 ? 'Excellente' : tendance >= 70 ? 'Bonne' : tendance >= 50 ? 'Correcte' : 'À surveiller',
+        trendTxt: prevKm > 0 ? (curKm >= prevKm ? '↑ En progression' : '↓ Semaine plus légère') : '—' },
+    ];
+
+    rings.forEach(r => {
+      const offset = circ - (r.pct / 100) * circ;
+      document.getElementById(r.id).style.strokeDashoffset = offset;
+      document.getElementById(r.val).textContent = r.pct + '%';
+      document.getElementById(r.stat).textContent = r.statTxt;
+      document.getElementById(r.trend).textContent = r.trendTxt;
+    });
+
+    // Feed activités récentes (5 dernières)
+    const icons = { Run: '🏃', Ride: '🚴', Swim: '🏊', WeightTraining: '💪', Hike: '🥾', Walk: '🚶', VirtualRide: '🚴' };
+    const feed = document.getElementById('activity-feed');
+    if (!acts.length) { feed.innerHTML = ''; return; }
+
+    feed.innerHTML = acts.slice(0, 6).map(a => {
+      const icon = icons[a.type] || '🏃';
+      const pace = a.avg_pace ? `${Math.floor(a.avg_pace/60)}'${String(Math.round(a.avg_pace%60)).padStart(2,'0')}"/km` : '';
+      const stats = [
+        a.distance_km ? `${a.distance_km} km` : '',
+        a.elevation_m ? `${a.elevation_m}m D+` : '',
+        pace,
+      ].filter(Boolean).join(' · ');
+      const date = new Date(a.start_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      return `<div class="act-chip" onclick="askAboutActivity('${a.name.replace(/'/g,"\\'")}', '${stats}')">
+        <div class="act-chip-icon">${icon}</div>
+        <div class="act-chip-info">
+          <div class="act-chip-name">${a.name}</div>
+          <div class="act-chip-stats">${stats} · ${date}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    console.warn('Strava stats error:', e);
+    animateStats({ focus: 68, energy: 74, clarity: 81 });
+  }
+}
+
+function askAboutActivity(name, stats) {
+  const msg = `Analyse ma sortie "${name}" (${stats})`;
+  document.getElementById('msg-input').value = msg;
+  document.getElementById('msg-input').focus();
 }
 
 /* ── Strava ───────────────────────────────────────────────────── */

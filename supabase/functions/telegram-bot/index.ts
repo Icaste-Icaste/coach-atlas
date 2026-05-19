@@ -136,6 +136,23 @@ async function handleCallbackQuery(query: Record<string, unknown>) {
     answers.mental = labels[data];
     await sbUpsert('telegram_state', { chat_id: TG_CHAT, state: 'done', answers, updated_at: new Date().toISOString() });
 
+    // Sauvegarde permanent dans training_ressentis
+    await fetch(`${SB_URL}/rest/v1/training_ressentis`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        user_id: 'u_6vb0si3amp8sxkkw',
+        activity_name: st.activity_name,
+        activity_stats: st.activity_stats,
+        ressenti: answers.ressenti,
+        corps: answers.corps,
+        mental: answers.mental,
+      }),
+    });
+
     // Génère l'encouragement
     const context = `Sortie : ${st.activity_name}
 Stats : ${st.activity_stats}

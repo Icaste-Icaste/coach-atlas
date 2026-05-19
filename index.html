@@ -635,6 +635,7 @@ const SB_KEY        = 'sb_publishable_b_J5OKoc_vmi3FOt620Jhg_tNjC04Ot';
 const PROXY_URL     = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/chat';
 const STRAVA_CLIENT_ID = '247715';
 const STRAVA_AUTH_URL  = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/strava-auth';
+const STRAVA_SYNC_URL  = 'https://qbusyfjyrdqfuhzccnua.supabase.co/functions/v1/strava-sync';
 
 const QUOTES = [
   "« L'ultra ne se court pas avec les jambes, il se court avec le cœur. » — Kilian Jornet",
@@ -1178,13 +1179,18 @@ function renderStravaButton() {
 
   if (connected) {
     wrap.innerHTML = `
-      <div style="background:rgba(252,82,0,.1);border:1px solid rgba(252,82,0,.3);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;">
-        ${avatar ? `<img src="${avatar}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />` : ''}
-        <div style="min-width:0;flex:1;">
-          <div style="font-size:11px;font-weight:700;color:#fc5200;">Strava connecté</div>
-          <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${athleteName}</div>
+      <div style="background:rgba(252,82,0,.1);border:1px solid rgba(252,82,0,.3);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${avatar ? `<img src="${avatar}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />` : ''}
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:11px;font-weight:700;color:#fc5200;">Strava connecté</div>
+            <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${athleteName}</div>
+          </div>
+          <button onclick="disconnectStrava()" title="Déconnecter" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;">✕</button>
         </div>
-        <button onclick="disconnectStrava()" title="Déconnecter" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;">✕</button>
+        <button onclick="syncStravaHistory(this)" style="width:100%;background:rgba(252,82,0,.15);border:1px solid rgba(252,82,0,.3);border-radius:8px;color:#fc5200;font-family:inherit;font-size:11px;font-weight:600;padding:7px;cursor:pointer;transition:all .2s;">
+          ↓ Importer tout l'historique Strava
+        </button>
       </div>`;
   } else {
     wrap.innerHTML = `
@@ -1197,6 +1203,27 @@ function renderStravaButton() {
 
 function connectStrava() {
   window.location.href = stravaOAuthURL();
+}
+
+async function syncStravaHistory(btn: HTMLButtonElement) {
+  const original = btn.textContent;
+  btn.textContent = '⏳ Import en cours…';
+  btn.disabled = true;
+  try {
+    const res = await fetch(STRAVA_SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ user_id: getUserId() }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    btn.textContent = `✅ ${data.total} activités importées !`;
+    appendMessage('coach', `✅ Historique Strava importé — **${data.total} activités** chargées dans ta base.\n\nJe peux maintenant analyser ton évolution sur les semaines passées, identifier tes pics de charge, et calibrer précisément ton plan pour l'UTMB Andorre et Lyon→Nice. Pose-moi une question sur ton historique !`);
+    setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 5000);
+  } catch(e) {
+    btn.textContent = `❌ Erreur — ${(e as Error).message}`;
+    setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 3000);
+  }
 }
 
 function disconnectStrava() {

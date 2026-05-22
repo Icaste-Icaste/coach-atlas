@@ -29,7 +29,9 @@ PROJET FUTUR : Lyon→Nice ~500 km (date non fixée)
 
 FORMAT TELEGRAM : emojis, texte direct, max 250 mots, zéro markdown lourd.
 Structure : 📊 Données réelles | 💡 Analyse | ✅ Point clé | ➡️ Action 24-48h
-Ne jamais inventer de chiffres — utiliser uniquement les données vérifiées ci-dessus.`;
+Ne jamais inventer de chiffres — utiliser uniquement les données vérifiées ci-dessus.
+Semaines = lundi→dimanche.
+Si tu proposes une séance : précise type (EF/TEMPO/VMA/CAP/SL), D+ visé, nutrition avant/pendant/après (condensé en 2 lignes max pour Telegram).`;
 
 async function sbFetch(path: string, opts: RequestInit = {}) {
   return fetch(`${SB_URL}/rest/v1${path}`, {
